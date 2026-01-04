@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IPTV Player - Error State</title>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                        "surface-dark": "#16202a", 
+                        "border-dark": "#233648",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111a22; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #233648; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #344a61; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-hidden">
+<!-- App Container -->
+<div class="flex h-screen w-full">
+<!-- Sidebar Navigation -->
+<aside class="w-64 h-full bg-[#111a22] border-r border-[#233648] flex flex-col flex-shrink-0 z-20">
+<!-- App Logo/Header -->
+<div class="p-4 border-b border-[#233648]">
+<div class="flex gap-3 items-center">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-10 shrink-0" data-alt="Abstract colorful logo gradient" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAdka24JVKE2RpWS_tzuL259wf4kYlfXpCxMVorBuyt45uQmXWI9AhPpe393Us-trvt3mpB9lfTO7x7xB1cd8YKxOp6Zd13JWLw8hNokRMJ4qr7poHiC-ND47wk98mRKHGdFDbZkkzAxU4AT_aFI7NmosxWEGGpORC2BzlwHvet2mNiCDW16E2rV7Z42vekgSJJfWVZ5pu7gVwjDIP86vd5r8KQjjSk3ofws8b56Jng2IJRMX_AxLVicI7rnhxm0pCgk07sL2bPeng");'></div>
+<div class="flex flex-col overflow-hidden">
+<h1 class="text-white text-base font-bold leading-tight truncate">IPTV Pro</h1>
+<p class="text-[#92adc9] text-xs font-normal leading-normal">v2.4.0</p>
+</div>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex-1 overflow-y-auto py-4 flex flex-col gap-2 px-3">
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary cursor-pointer hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined filled">tv</span>
+<p class="text-sm font-medium leading-normal">Live TV</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#233648]/50 cursor-pointer transition-colors">
+<span class="material-symbols-outlined">list</span>
+<p class="text-sm font-medium leading-normal">Guide</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#233648]/50 cursor-pointer transition-colors">
+<span class="material-symbols-outlined">movie</span>
+<p class="text-sm font-medium leading-normal">Movies</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#233648]/50 cursor-pointer transition-colors">
+<span class="material-symbols-outlined">video_library</span>
+<p class="text-sm font-medium leading-normal">Series</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#233648]/50 cursor-pointer transition-colors">
+<span class="material-symbols-outlined">favorite</span>
+<p class="text-sm font-medium leading-normal">Favorites</p>
+</div>
+<!-- Separator -->
+<div class="my-2 border-t border-[#233648]"></div>
+<p class="px-3 text-xs font-semibold text-[#58728b] uppercase tracking-wider mb-1">Categories</p>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#233648]/50 cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[20px]">sports_soccer</span>
+<p class="text-sm font-medium leading-normal">Sports</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#233648]/50 cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[20px]">breaking_news</span>
+<p class="text-sm font-medium leading-normal">News</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#233648]/50 cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[20px]">child_care</span>
+<p class="text-sm font-medium leading-normal">Kids</p>
+</div>
+</div>
+<!-- Bottom Settings -->
+<div class="p-3 border-t border-[#233648]">
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#233648]/50 cursor-pointer transition-colors">
+<span class="material-symbols-outlined">settings</span>
+<p class="text-sm font-medium leading-normal">Settings</p>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col h-full relative min-w-0 bg-black">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-[#233648] bg-[#111a22] px-6 py-3 h-16 shrink-0 z-20">
+<div class="flex items-center gap-4 text-white min-w-0">
+<button class="text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="flex flex-col justify-center">
+<h2 class="text-white text-base md:text-lg font-bold leading-tight tracking-[-0.015em] truncate">HBO - Game of Thrones</h2>
+<span class="text-xs text-slate-400 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span> 
+                            Live • 1080p
+                        </span>
+</div>
+</div>
+<div class="flex gap-3 items-center">
+<button class="flex items-center justify-center rounded-lg size-10 bg-[#233648] hover:bg-[#2f455a] text-white transition-colors" title="Recent Channels">
+<span class="material-symbols-outlined">history</span>
+</button>
+<button class="flex items-center justify-center rounded-lg size-10 bg-[#233648] hover:bg-[#2f455a] text-white transition-colors" title="Cast">
+<span class="material-symbols-outlined">cast</span>
+</button>
+<button class="flex items-center justify-center rounded-lg size-10 bg-[#233648] hover:bg-[#2f455a] text-white transition-colors" title="Fullscreen">
+<span class="material-symbols-outlined">fullscreen</span>
+</button>
+</div>
+</header>
+<!-- Video Player Area (Error State) -->
+<div class="flex-1 relative flex items-center justify-center w-full bg-black overflow-hidden group/player">
+<!-- Background Image (Simulating frozen stream) -->
+<div class="absolute inset-0 bg-cover bg-center opacity-30 blur-sm scale-105" data-alt="Blurred background image of a dramatic movie scene" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCCQLYg05VTAubeufvt0AGQuyfZ42Lqo85AhAE2nIIlHy09kqmUaDcjrs7iBgmbMIq2rvDUMXVw2WIeIQpzi0gSyTxzsbE9EHe9HSv_-RdNJUdv229WL4D4gjZweb1rKf_2-m1t5-8zk9MY9e55HBExpA1tRsc5hN6ZnOs3JmrCERGFpqW5ls_-FbrlvTt5aZcCKsQfmSuDk5zXuggYdZel0tg2ENjR1h_rataXgMglXqwN0zCcdxZyIfAfV9ti8YGGKGYJHeNrUaw");'>
+</div>
+<!-- Gradient Overlay -->
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/60"></div>
+<!-- Error Overlay Card -->
+<div class="relative z-10 w-full max-w-[480px] mx-4 animate-in fade-in zoom-in duration-300">
+<!-- Card Body -->
+<div class="bg-[#16202a] border border-[#233648] rounded-xl shadow-2xl p-8 flex flex-col items-center text-center">
+<!-- Close Button (Top Right of Card) -->
+<button class="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+<!-- Error Icon -->
+<div class="mb-5 p-4 bg-primary/10 rounded-full text-primary">
+<span class="material-symbols-outlined text-[48px]">signal_wifi_bad</span>
+</div>
+<!-- Error Heading -->
+<h2 class="text-white text-xl font-bold mb-2">Stream Unavailable</h2>
+<!-- Error Description -->
+<p class="text-slate-400 text-sm mb-6 max-w-xs leading-relaxed">
+                            We lost connection to the source stream. <br/>
+<span class="font-mono text-xs opacity-70 bg-black/20 px-2 py-1 rounded mt-1 inline-block">Error Code: 404_MANIFEST_TIMEOUT</span>
+</p>
+<!-- Auto-Retry Indicator -->
+<div class="w-full flex flex-col gap-2 mb-8">
+<div class="flex justify-between items-center text-xs font-medium text-primary">
+<span>Retrying automatically...</span>
+<span>00:04</span>
+</div>
+<div class="h-1.5 w-full bg-[#233648] rounded-full overflow-hidden">
+<div class="h-full bg-primary w-3/4 rounded-full relative overflow-hidden">
+<!-- Shimmer effect on bar -->
+<div class="absolute inset-0 bg-white/20 -translate-x-full animate-[shimmer_1.5s_infinite]"></div>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex flex-col sm:flex-row gap-3 w-full">
+<button class="flex-1 bg-primary hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined text-[20px]">refresh</span>
+                                Reload Stream
+                            </button>
+<button class="flex-1 bg-transparent border border-[#233648] hover:bg-[#233648] text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined text-[20px] filled">open_in_new</span>
+                                External Player
+                            </button>
+</div>
+<!-- Helper Link -->
+<button class="mt-6 text-xs text-slate-500 hover:text-primary transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">flag</span>
+                            Report Broken Channel
+                        </button>
+</div>
+</div>
+<!-- Player Controls (Disabled visual state below overlay) -->
+<div class="absolute bottom-0 w-full p-6 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none opacity-50">
+<div class="flex items-center gap-4 mb-2">
+<div class="h-1 flex-1 bg-white/20 rounded-full"></div>
+</div>
+<div class="flex justify-between items-center text-white/50">
+<div class="flex gap-4">
+<span class="material-symbols-outlined">play_arrow</span>
+<span class="material-symbols-outlined">volume_up</span>
+</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined">closed_caption</span>
+<span class="material-symbols-outlined">settings</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<style>
+        @keyframes shimmer {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+    </style>
+</body></html>

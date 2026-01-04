@@ -1,0 +1,302 @@
+[
+  {
+    "id": "bbc-news",
+    "name": "BBC News",
+    "country": "UK",
+    "category": "News",
+    "logo": "https://i.imgur.com/eNPIQ9f.png",
+    "url": "https://vs-cmaf-pushb-uk.live.cf.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/pc_hd_abr_v2.mpd",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "france24-en",
+    "name": "France 24 English",
+    "country": "France",
+    "category": "News",
+    "logo": "https://i.imgur.com/RVjoptr.png",
+    "url": "https://live.france24.com/hls/live/2037218/F24_EN_HI_HLS/master.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "dw-en",
+    "name": "DW English",
+    "country": "Germany",
+    "category": "News",
+    "logo": "https://i.imgur.com/A1xzjOi.png",
+    "url": "https://dwamdstream104.akamaized.net/hls/live/2015530/dwstream104/index.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "aljazeera",
+    "name": "Al Jazeera English",
+    "country": "Qatar",
+    "category": "News",
+    "logo": "https://i.imgur.com/wNPq1Nj.png",
+    "url": "https://live-hls-web-aje.getaj.net/AJE/index.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "cgtn",
+    "name": "CGTN",
+    "country": "China",
+    "category": "News",
+    "logo": "https://i.imgur.com/WQPPh1P.png",
+    "url": "https://news.cgtn.com/resource/live/english/cgtn-news.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "nhk-world",
+    "name": "NHK World Japan",
+    "country": "Japan",
+    "category": "News",
+    "logo": "https://i.imgur.com/CfRn6lv.png",
+    "url": "https://nhkwlive-ojp.akamaized.net/hls/live/2003459/nhkwlive-ojp-en/index.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "euronews",
+    "name": "Euronews English",
+    "country": "France",
+    "category": "News",
+    "logo": "https://i.imgur.com/dj9Cpry.png",
+    "url": "https://euronews-euronews-english-1-eu.plex.wurl.tv/playlist.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "arirang",
+    "name": "Arirang TV",
+    "country": "South Korea",
+    "category": "General",
+    "logo": "https://i.imgur.com/8qLCk5B.png",
+    "url": "https://amdlive-ch01-ctnd-com.akamaized.net/arirang_1ch/smil:arirang_1ch.smil/playlist.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "rt",
+    "name": "RT News",
+    "country": "Russia",
+    "category": "News",
+    "logo": "https://i.imgur.com/O6Rcppb.png",
+    "url": "https://rt-news.secure.footprint.net/1103.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "bloomberg",
+    "name": "Bloomberg TV",
+    "country": "USA",
+    "category": "Business",
+    "logo": "https://i.imgur.com/7SVg6QN.png",
+    "url": "https://www.bloomberg.com/media-manifest/streams/us.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "sky-news",
+    "name": "Sky News",
+    "country": "UK",
+    "category": "News",
+    "logo": "https://i.imgur.com/8WBlEbF.png",
+    "url": "https://linear413-gb-hls1-prd-ak.cdn.skycdp.com/100e/Content/HLS_001_1080_30/Live/channel(skynews)/index.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "abc-news-au",
+    "name": "ABC News Australia",
+    "country": "Australia",
+    "category": "News",
+    "logo": "https://i.imgur.com/ILBYVgd.png",
+    "url": "https://abc-iview-mediapackagestreams-2.akamaized.net/out/v1/6e1cc6d25ec0480ea099a5399d73bc4b/index.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "trt-world",
+    "name": "TRT World",
+    "country": "Turkey",
+    "category": "News",
+    "logo": "https://i.imgur.com/gLZqWqH.png",
+    "url": "https://tv-trtworld.live.trt.com.tr/master.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "cna",
+    "name": "CNA",
+    "country": "Singapore",
+    "category": "News",
+    "logo": "https://i.imgur.com/IvXe36V.png",
+    "url": "https://live1.mediagw.mediacorp.sg/mediacorp/chnasia/index.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "nasa-tv",
+    "name": "NASA TV",
+    "country": "USA",
+    "category": "Science",
+    "logo": "https://i.imgur.com/8PVaHJ8.png",
+    "url": "https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "wion",
+    "name": "WION",
+    "country": "India",
+    "category": "News",
+    "logo": "https://i.imgur.com/yXkj8Kj.png",
+    "url": "https://d18dyiwu97wm6q.cloudfront.net/hls/master.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "newsmax",
+    "name": "Newsmax",
+    "country": "USA",
+    "category": "News",
+    "logo": "https://i.imgur.com/9r2Lhgo.png",
+    "url": "https://nmxlive.akamaized.net/hls/live/529965/Live_1/index.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "ndtv-india",
+    "name": "NDTV India",
+    "country": "India",
+    "category": "News",
+    "logo": "https://i.imgur.com/jFSLRBp.png",
+    "url": "https://ndtv24x7elemarchana.akamaized.net/hls/live/2003678/ndtv24x7/ndtv24x7.m3u8",
+    "languages": ["English", "Hindi"],
+    "isNsfw": false
+  },
+  {
+    "id": "cspan",
+    "name": "C-SPAN",
+    "country": "USA",
+    "category": "Government",
+    "logo": "https://i.imgur.com/OvJzBPf.png",
+    "url": "https://www.c-span.org/assets/player/ajax-loader.gif",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "rti",
+    "name": "RTI",
+    "country": "Taiwan",
+    "category": "General",
+    "logo": "https://i.imgur.com/6Gj7mf3.png",
+    "url": "https://rti-video.cdn.hinet.net/live/rti/rti_multi.m3u8",
+    "languages": ["Chinese", "English"],
+    "isNsfw": false
+  },
+  {
+    "id": "lofi-girl",
+    "name": "Lofi Girl Radio",
+    "country": "International",
+    "category": "Music",
+    "logo": "https://i.imgur.com/lOKLCHR.png",
+    "url": "https://www.youtube.com/watch?v=jfKfPfyJRdk",
+    "languages": ["Instrumental"],
+    "isNsfw": false
+  },
+  {
+    "id": "mtv-live",
+    "name": "MTV Live",
+    "country": "USA",
+    "category": "Music",
+    "logo": "https://i.imgur.com/1xSTZlE.png",
+    "url": "https://mtvie-live.akamaized.net/hls/live/2034421/mtvie/master.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "food-network",
+    "name": "Food Network",
+    "country": "USA",
+    "category": "Lifestyle",
+    "logo": "https://i.imgur.com/Jnv4ks3.png",
+    "url": "https://foodnetwork.akamaized.net/hls/live/2009463/fnhd/master.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "animal-planet",
+    "name": "Animal Planet",
+    "country": "USA",
+    "category": "Documentary",
+    "logo": "https://i.imgur.com/L8JwcVH.png",
+    "url": "https://aplgo.akamaized.net/hls/live/2002626/aplhd/master.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "nat-geo-wild",
+    "name": "Nat Geo Wild",
+    "country": "USA",
+    "category": "Documentary",
+    "logo": "https://i.imgur.com/jI2EkG7.png",
+    "url": "https://natgeowild.akamaized.net/hls/live/2008223/ngwhd/master.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "cartoon-network",
+    "name": "Cartoon Network",
+    "country": "USA",
+    "category": "Kids",
+    "logo": "https://i.imgur.com/qmUBYzK.png",
+    "url": "https://cartoonnetwork.akamaized.net/hls/live/2014027/cnhd/master.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "nick-jr",
+    "name": "Nick Jr",
+    "country": "USA",
+    "category": "Kids",
+    "logo": "https://i.imgur.com/0fSWV4S.png",
+    "url": "https://nickjr.akamaized.net/hls/live/2009227/nickjr/master.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "discovery",
+    "name": "Discovery Channel",
+    "country": "USA",
+    "category": "Documentary",
+    "logo": "https://i.imgur.com/VjPXrZD.png",
+    "url": "https://discovery.akamaized.net/hls/live/2002695/dischd/master.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "history-channel",
+    "name": "History Channel",
+    "country": "USA",
+    "category": "Documentary",
+    "logo": "https://i.imgur.com/Bg7AQkb.png",
+    "url": "https://history.akamaized.net/hls/live/2009461/historyhd/master.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  },
+  {
+    "id": "travel-channel",
+    "name": "Travel Channel",
+    "country": "USA",
+    "category": "Lifestyle",
+    "logo": "https://i.imgur.com/lGXRh7L.png",
+    "url": "https://travelchannel.akamaized.net/hls/live/2008429/travelhd/master.m3u8",
+    "languages": ["English"],
+    "isNsfw": false
+  }
+]

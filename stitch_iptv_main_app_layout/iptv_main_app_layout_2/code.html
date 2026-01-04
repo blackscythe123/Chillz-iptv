@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IPTV Player - Annotated Design</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                        "panel-dark": "#111a22",
+                        "border-dark": "#233648",
+                        "input-bg": "#233648",
+                        "text-secondary": "#92adc9",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>.custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #111a22;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #324d67;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #4a6b8c;
+        }@keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        .annotation-ping::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            border: 2px solid #ec4899;
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-white font-display h-screen flex overflow-hidden selection:bg-primary selection:text-white relative">
+<div class="absolute inset-0 z-[100] pointer-events-none overflow-hidden">
+<div class="absolute top-[140px] left-[25rem] flex items-start group">
+<div class="relative">
+<div class="w-3 h-3 bg-pink-500 rounded-full annotation-ping absolute -left-[1.5rem] top-4"></div>
+<svg class="absolute -left-[1.2rem] top-[1.1rem] w-8 h-px overflow-visible stroke-pink-500" style="transform: scaleX(-1);">
+<line stroke-dasharray="4 2" stroke-width="2" x1="0" x2="32" y1="0" y2="0"></line>
+<circle cx="0" cy="0" fill="#ec4899" r="2"></circle>
+</svg>
+</div>
+<div class="bg-slate-900/90 backdrop-blur-md border border-pink-500/30 text-white p-3 rounded-lg shadow-2xl max-w-[280px] ml-2 transform transition-all hover:scale-105 pointer-events-auto">
+<div class="flex items-center gap-2 mb-1 border-b border-pink-500/20 pb-1">
+<span class="bg-pink-500 text-white text-[10px] font-bold px-1.5 rounded">01</span>
+<h3 class="text-pink-400 text-xs font-bold uppercase tracking-wider">Search &amp; Filters</h3>
+</div>
+<p class="text-[11px] text-gray-300 leading-relaxed">
+<strong>Sticky Header:</strong> Keeps filters accessible while scrolling large datasets.
+                    <br/><span class="text-gray-500 block mt-1">UX Note: Instant filtering is critical for 38k+ items to prevent user fatigue.</span>
+</p>
+</div>
+</div>
+<div class="absolute top-[400px] left-[25rem] flex items-start group">
+<div class="relative">
+<div class="w-3 h-3 bg-pink-500 rounded-full annotation-ping absolute -left-[1.5rem] top-4"></div>
+<svg class="absolute -left-[1.2rem] top-[1.1rem] w-8 h-px overflow-visible stroke-pink-500" style="transform: scaleX(-1);">
+<line stroke-dasharray="4 2" stroke-width="2" x1="0" x2="32" y1="0" y2="0"></line>
+<circle cx="0" cy="0" fill="#ec4899" r="2"></circle>
+</svg>
+</div>
+<div class="bg-slate-900/90 backdrop-blur-md border border-pink-500/30 text-white p-3 rounded-lg shadow-2xl max-w-[280px] ml-2 transform transition-all hover:scale-105 pointer-events-auto">
+<div class="flex items-center gap-2 mb-1 border-b border-pink-500/20 pb-1">
+<span class="bg-pink-500 text-white text-[10px] font-bold px-1.5 rounded">02</span>
+<h3 class="text-pink-400 text-xs font-bold uppercase tracking-wider">Persistent Channel List</h3>
+</div>
+<p class="text-[11px] text-gray-300 leading-relaxed">
+<strong>Fixed Width (w-96):</strong> Ensures predictable layout.
+                    <br/><strong>Performance:</strong> Designed for virtual scrolling (rendering only visible DOM nodes) to handle thousands of channels without lag.
+                    <br/><span class="text-gray-500 block mt-1">Design: Compact rows maximize visible options.</span>
+</p>
+</div>
+</div>
+<div class="absolute bottom-[140px] left-1/2 -translate-x-1/2 flex flex-col items-center group">
+<div class="bg-slate-900/90 backdrop-blur-md border border-pink-500/30 text-white p-3 rounded-lg shadow-2xl max-w-[320px] mb-4 transform transition-all hover:scale-105 pointer-events-auto">
+<div class="flex items-center gap-2 mb-1 border-b border-pink-500/20 pb-1">
+<span class="bg-pink-500 text-white text-[10px] font-bold px-1.5 rounded">03</span>
+<h3 class="text-pink-400 text-xs font-bold uppercase tracking-wider">Adaptive Video Player</h3>
+</div>
+<p class="text-[11px] text-gray-300 leading-relaxed">
+<strong>Focus Mode:</strong> Minimal UI interference. Controls fade out when inactive.
+                    <br/><strong>Fallback:</strong> "Open in VLC" button (top-right) handles streams unsupported by web browsers.
+                </p>
+</div>
+<div class="relative">
+<svg class="w-px h-8 overflow-visible stroke-pink-500">
+<line stroke-dasharray="4 2" stroke-width="2" x1="0" x2="0" y1="0" y2="32"></line>
+<circle cx="0" cy="32" fill="#ec4899" r="2"></circle>
+</svg>
+<div class="w-3 h-3 bg-pink-500 rounded-full annotation-ping absolute -left-[5px] bottom-0"></div>
+</div>
+</div>
+<div class="absolute top-[100px] right-[21rem] flex items-start flex-row-reverse group hidden lg:flex">
+<div class="relative">
+<div class="w-3 h-3 bg-pink-500 rounded-full annotation-ping absolute -right-[1.5rem] top-4"></div>
+<svg class="absolute -right-[1.2rem] top-[1.1rem] w-8 h-px overflow-visible stroke-pink-500">
+<line stroke-dasharray="4 2" stroke-width="2" x1="0" x2="32" y1="0" y2="0"></line>
+<circle cx="32" cy="0" fill="#ec4899" r="2"></circle>
+</svg>
+</div>
+<div class="bg-slate-900/90 backdrop-blur-md border border-pink-500/30 text-white p-3 rounded-lg shadow-2xl max-w-[280px] mr-2 transform transition-all hover:scale-105 pointer-events-auto text-right">
+<div class="flex items-center gap-2 mb-1 border-b border-pink-500/20 pb-1 justify-end">
+<h3 class="text-pink-400 text-xs font-bold uppercase tracking-wider">Context &amp; EPG</h3>
+<span class="bg-pink-500 text-white text-[10px] font-bold px-1.5 rounded">04</span>
+</div>
+<p class="text-[11px] text-gray-300 leading-relaxed">
+<strong>Responsive Design:</strong> This panel is hidden on smaller desktop widths (below 1024px) to prioritize video size.
+                    <br/><span class="text-gray-500 block mt-1">Function: Provides program guide without overlaying video.</span>
+</p>
+</div>
+</div>
+</div>
+<aside class="w-96 flex flex-col border-r border-border-dark bg-panel-dark shrink-0 z-20">
+<div class="p-4 border-b border-border-dark flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="size-8 rounded-lg bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined">live_tv</span>
+</div>
+<h1 class="text-lg font-bold tracking-tight">StreamFlow</h1>
+</div>
+<button class="text-text-secondary hover:text-white transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<label class="flex flex-col w-full h-10">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden">
+<div class="text-text-secondary flex border-none bg-input-bg items-center justify-center pl-3 pr-2">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="flex w-full min-w-0 flex-1 resize-none bg-input-bg text-white focus:outline-0 focus:ring-0 border-none placeholder:text-text-secondary px-0 text-sm font-normal leading-normal h-full" placeholder="Search 38,000 channels..." value=""/>
+</div>
+</label>
+<div class="flex gap-2">
+<label class="flex-1 relative">
+<select class="appearance-none w-full bg-input-bg text-white text-xs border border-border-dark rounded-lg px-3 py-2 pr-8 focus:outline-none focus:border-primary cursor-pointer h-9 truncate">
+<option value="all">All Categories</option>
+<option value="sports">Sports</option>
+<option value="news">News</option>
+<option value="movies">Movies</option>
+</select>
+<div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-text-secondary">
+<span class="material-symbols-outlined text-[18px]">expand_more</span>
+</div>
+</label>
+<label class="flex-1 relative">
+<select class="appearance-none w-full bg-input-bg text-white text-xs border border-border-dark rounded-lg px-3 py-2 pr-8 focus:outline-none focus:border-primary cursor-pointer h-9 truncate">
+<option value="all">All Countries</option>
+<option value="us">United States</option>
+<option value="uk">United Kingdom</option>
+<option value="ca">Canada</option>
+</select>
+<div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-text-secondary">
+<span class="material-symbols-outlined text-[18px]">expand_more</span>
+</div>
+</label>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
+<div class="px-4 py-2 text-xs font-semibold text-text-secondary uppercase tracking-wider sticky top-0 bg-panel-dark/95 backdrop-blur z-10 border-b border-border-dark">
+                Favorites
+            </div>
+<div class="group flex items-center gap-3 px-4 py-2 bg-primary/20 border-l-[3px] border-primary cursor-pointer hover:bg-primary/30 transition-colors">
+<div class="bg-center bg-no-repeat bg-cover rounded-full h-8 w-8 shrink-0 bg-white/10" data-alt="CNN Logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD27jRRVL96wHSOQ4JR13R52Lw03x60U6u4PxQxfTrRvJeeMCd58J2fKRlLKoe9ZkmV6ZcvrghHFEl864K-svO9annL7Lx_6biQHVC_WtHDNhfUquE0Mhgj0F64vMv5lEeTdv03glAqk_QgvNcDAIKKLgw8SMB8aHek2LIqA8lRSLY_jADEFGKgZvcb1f_vMDjM99EA4YwvgGYNJM5fQGtq8Pw7kaQTpXXWT3z6V298u786z9c6HUUT7qesoscOFKBby21WCcS9AXM");'></div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-white text-sm font-medium truncate">CNN US</p>
+<p class="text-primary text-xs truncate">News • 1080p</p>
+</div>
+<button class="text-primary shrink-0 hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[20px] font-variation-settings-'FILL'1">star</span>
+</button>
+</div>
+<div class="group flex items-center gap-3 px-4 py-2 border-l-[3px] border-transparent hover:bg-white/5 cursor-pointer transition-colors">
+<div class="bg-center bg-no-repeat bg-cover rounded-full h-8 w-8 shrink-0 bg-white/10" data-alt="Sky Sports Logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDuXvNWhBX9wB2czuAJc2O0rz3WWEZGXJSQ5gEnvmcxvuZ2QHKCR-HsOaB3F5Sqvq4j6_7_hr2yTiXK6dViFxrGuh_t8oXAZCxGWfZEfSicl7Q-GBNzA9UuN_AeOzBy0pHiE67rjxozf2dOBm9PafhGEmMKtvJGiqdf6Mcl0Xniv5OuO_gIx9-XKBTWdratrvzezi80af-ObqHDKHvxWPqTKJ5v2fiixtJUaNr740a1n45sfizVzgMUYuppjs3Q6_FQmG2YpYOeGNI");'></div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-gray-300 group-hover:text-white text-sm font-normal truncate">Sky Sports Main Event</p>
+<p class="text-text-secondary text-xs truncate">Sports • 720p</p>
+</div>
+<button class="text-text-secondary hover:text-white shrink-0">
+<span class="material-symbols-outlined text-[20px]">star</span>
+</button>
+</div>
+<div class="group flex items-center gap-3 px-4 py-2 border-l-[3px] border-transparent hover:bg-white/5 cursor-pointer transition-colors">
+<div class="bg-center bg-no-repeat bg-cover rounded-full h-8 w-8 shrink-0 bg-white/10" data-alt="BBC Logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCztHAkOV4CbX0vJ1Y7jpb8Y3rQlXXXCNjqBQiO-0sPcXIWGTfvxPFh8_zpdhserNIHvE1V67Q9qKmVf8LAZYM62n2kEJS0YrLhpZq8nwi70j9XbzlbBTAMyHr2nPE7OCFdY9qW0OW2bNhuW9h_xf1aPG041Yzr0TgLwVEQ0pseZ4k2y0xHTsvV3NoNqEzluivni2iZ7k_y_hdq_WtvW8jP21LcrmhUxGfdRmeflqdH8DlqfoEqsq0M8MD0QEN8Yf0Sq85pFtQuasM");'></div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-gray-300 group-hover:text-white text-sm font-normal truncate">BBC One</p>
+<p class="text-text-secondary text-xs truncate">General • 1080p</p>
+</div>
+<button class="text-text-secondary hover:text-white shrink-0">
+<span class="material-symbols-outlined text-[20px] font-variation-settings-'FILL'1">star</span>
+</button>
+</div>
+<div class="px-4 py-2 text-xs font-semibold text-text-secondary uppercase tracking-wider sticky top-0 bg-panel-dark/95 backdrop-blur z-10 border-b border-t border-border-dark mt-2">
+                All Channels
+            </div>
+<div class="group flex items-center gap-3 px-4 py-2 border-l-[3px] border-transparent hover:bg-white/5 cursor-pointer transition-colors">
+<div class="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shrink-0 text-xs font-bold" data-alt="Generic Channel Icon">D</div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-gray-300 group-hover:text-white text-sm font-normal truncate">Discovery Channel</p>
+<p class="text-text-secondary text-xs truncate">Documentary • FHD</p>
+</div>
+<button class="text-text-secondary hover:text-white shrink-0">
+<span class="material-symbols-outlined text-[20px]">star</span>
+</button>
+</div>
+<div class="group flex items-center gap-3 px-4 py-2 border-l-[3px] border-transparent hover:bg-white/5 cursor-pointer transition-colors">
+<div class="h-8 w-8 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center shrink-0 text-xs font-bold" data-alt="Generic Channel Icon">N</div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-gray-300 group-hover:text-white text-sm font-normal truncate">Nat Geo Wild</p>
+<p class="text-text-secondary text-xs truncate">Nature • FHD</p>
+</div>
+<button class="text-text-secondary hover:text-white shrink-0">
+<span class="material-symbols-outlined text-[20px]">star</span>
+</button>
+</div>
+<div class="group flex items-center gap-3 px-4 py-2 border-l-[3px] border-transparent hover:bg-white/5 cursor-pointer transition-colors">
+<div class="h-8 w-8 rounded-full bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center shrink-0 text-xs font-bold" data-alt="Generic Channel Icon">E</div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-gray-300 group-hover:text-white text-sm font-normal truncate">ESPN</p>
+<p class="text-text-secondary text-xs truncate">Sports • 60fps</p>
+</div>
+<button class="text-text-secondary hover:text-white shrink-0">
+<span class="material-symbols-outlined text-[20px]">star</span>
+</button>
+</div>
+<div class="group flex items-center gap-3 px-4 py-2 border-l-[3px] border-transparent hover:bg-white/5 cursor-pointer transition-colors">
+<div class="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shrink-0 text-xs font-bold" data-alt="Generic Channel Icon">H</div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-gray-300 group-hover:text-white text-sm font-normal truncate">HBO</p>
+<p class="text-text-secondary text-xs truncate">Movies • 4K</p>
+</div>
+<button class="text-text-secondary hover:text-white shrink-0">
+<span class="material-symbols-outlined text-[20px]">star</span>
+</button>
+</div>
+</div>
+<div class="p-2 border-t border-border-dark text-[10px] text-text-secondary text-center bg-[#0d141b]">
+            38,421 Channels • Last updated: 2 mins ago
+        </div>
+</aside>
+<main class="flex-1 flex flex-col relative bg-black group/player">
+<div class="flex-1 relative flex items-center justify-center bg-black overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center opacity-60" data-alt="Abstract gradient representing live news broadcast" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB5dXDzT7KE-ggSnTRsALrM4QQTo3opyT1NqF9QRK4eszLlh5bpxxre6Syta9FaWKIfyt4fL6t-sXrFkxNMm6kbVZY8kC3cxTpTqQNqXguXrpTIPYEcQGv4CUOWFKkFAUgk-meFySW5yr3P-j8lYVm013m6-zjAYUJTaz2DkcwKTS16a9jgVQn-urz3PPWhTQxio90W4cOdu_nDZ8JBPBl6k_tEq3-IexCeTSrGwjlSi10neM1rpIOllvRCD7QKtPyxWJrVFPnSsP8');"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/40"></div>
+<button class="z-20 size-20 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-primary hover:border-primary transition-all shadow-2xl scale-95 opacity-0 group-hover/player:opacity-100 group-hover/player:scale-100">
+<span class="material-symbols-outlined text-4xl">play_arrow</span>
+</button>
+<div class="absolute top-6 right-6 z-30 opacity-0 group-hover/player:opacity-100 transition-opacity">
+<button class="flex items-center gap-2 bg-black/60 hover:bg-primary backdrop-blur-md text-white px-4 py-2 rounded-lg text-sm font-medium border border-white/10 transition-colors">
+<span class="material-symbols-outlined text-[18px]">open_in_new</span>
+                    Open in VLC
+                </button>
+</div>
+<div class="absolute top-6 left-6 z-30">
+<div class="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-sm inline-block mb-2">LIVE</div>
+<h2 class="text-2xl font-bold text-white drop-shadow-md">Anderson Cooper 360°</h2>
+<p class="text-gray-300 text-sm drop-shadow-md">CNN US • 1080p • 6.5 Mbps</p>
+</div>
+</div>
+<div class="h-20 bg-[#0d141b] border-t border-border-dark px-6 flex items-center gap-6 shrink-0 z-30">
+<button class="text-white hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-4xl">pause_circle</span>
+</button>
+<div class="flex items-center gap-2 group/volume">
+<button class="text-gray-400 hover:text-white">
+<span class="material-symbols-outlined">volume_up</span>
+</button>
+<div class="w-20 h-1 bg-gray-700 rounded-full cursor-pointer relative overflow-hidden group-hover/volume:h-1.5 transition-all">
+<div class="absolute top-0 left-0 bottom-0 w-[70%] bg-white rounded-full"></div>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-1 mx-4">
+<div class="flex justify-between text-xs text-text-secondary font-medium">
+<span>-00:45</span>
+<span>LIVE</span>
+</div>
+<div class="w-full h-1.5 bg-gray-700 rounded-full cursor-pointer relative overflow-hidden">
+<div class="absolute top-0 left-0 bottom-0 w-[98%] bg-primary rounded-full shadow-[0_0_10px_rgba(19,127,236,0.5)]"></div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-gray-400 hover:text-white flex items-center gap-1 text-xs bg-white/5 px-2 py-1 rounded hover:bg-white/10">
+<span class="material-symbols-outlined text-[16px]">closed_caption</span>
+<span>EN</span>
+</button>
+<button class="text-gray-400 hover:text-white">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="text-gray-400 hover:text-white hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">fullscreen</span>
+</button>
+</div>
+</div>
+</main>
+<aside class="w-80 border-l border-border-dark bg-panel-dark flex flex-col shrink-0 hidden lg:flex">
+<div class="h-16 border-b border-border-dark flex items-center px-6 font-semibold text-white">
+            Program Guide
+        </div>
+<div class="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-6">
+<div>
+<div class="flex items-center gap-2 mb-4">
+<span class="px-2 py-0.5 rounded bg-primary/20 text-primary text-[10px] font-bold uppercase border border-primary/30">Now Playing</span>
+<span class="text-xs text-text-secondary">18:00 - 19:00</span>
+</div>
+<h3 class="text-xl font-bold text-white mb-2 leading-tight">Anderson Cooper 360°</h3>
+<p class="text-sm text-gray-400 leading-relaxed">
+                    Anderson Cooper brings you the latest news and analysis from Washington and around the world, featuring interviews with key newsmakers.
+                </p>
+<div class="mt-4">
+<div class="flex justify-between text-[10px] text-text-secondary mb-1">
+<span>45m elapsed</span>
+<span>15m remaining</span>
+</div>
+<div class="h-1 w-full bg-[#233648] rounded-full overflow-hidden">
+<div class="h-full w-3/4 bg-primary"></div>
+</div>
+</div>
+</div>
+<div class="h-px bg-border-dark w-full"></div>
+<div>
+<h4 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-text-secondary text-[18px]">calendar_today</span>
+                    Up Next
+                </h4>
+<div class="flex flex-col gap-4">
+<div class="flex gap-3 group cursor-pointer">
+<div class="w-12 text-right shrink-0">
+<p class="text-sm font-bold text-white">19:00</p>
+<p class="text-[10px] text-text-secondary">60m</p>
+</div>
+<div class="flex-1 pb-4 border-l border-border-dark pl-4 relative">
+<div class="absolute -left-[5px] top-1.5 size-2.5 rounded-full bg-border-dark group-hover:bg-primary transition-colors ring-4 ring-panel-dark"></div>
+<p class="text-sm font-medium text-gray-200 group-hover:text-primary transition-colors">Erin Burnett OutFront</p>
+<p class="text-xs text-gray-500 mt-1 line-clamp-2">In-depth analysis of the day's global headlines, with a focus on political news.</p>
+</div>
+</div>
+<div class="flex gap-3 group cursor-pointer">
+<div class="w-12 text-right shrink-0">
+<p class="text-sm font-bold text-white">20:00</p>
+<p class="text-[10px] text-text-secondary">60m</p>
+</div>
+<div class="flex-1 pb-4 border-l border-border-dark pl-4 relative">
+<div class="absolute -left-[5px] top-1.5 size-2.5 rounded-full bg-border-dark group-hover:bg-primary transition-colors ring-4 ring-panel-dark"></div>
+<p class="text-sm font-medium text-gray-200 group-hover:text-primary transition-colors">Cuomo Prime Time</p>
+<p class="text-xs text-gray-500 mt-1 line-clamp-2">Chris Cuomo interviews public figures and discusses the latest political issues.</p>
+</div>
+</div>
+<div class="flex gap-3 group cursor-pointer">
+<div class="w-12 text-right shrink-0">
+<p class="text-sm font-bold text-white">21:00</p>
+<p class="text-[10px] text-text-secondary">60m</p>
+</div>
+<div class="flex-1 pb-4 border-l border-border-dark pl-4 relative">
+<div class="absolute -left-[5px] top-1.5 size-2.5 rounded-full bg-border-dark group-hover:bg-primary transition-colors ring-4 ring-panel-dark"></div>
+<p class="text-sm font-medium text-gray-200 group-hover:text-primary transition-colors">Don Lemon Tonight</p>
+<p class="text-xs text-gray-500 mt-1 line-clamp-2">Don Lemon leads the conversation on the day's biggest stories.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</aside>
+
+</body></html>

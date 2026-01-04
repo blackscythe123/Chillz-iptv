@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IPTV Settings Panel</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                        "surface-dark": "#1c2a36",
+                        "surface-light": "#ffffff",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for the settings panel */
+        .settings-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .settings-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .settings-scroll::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.3);
+            border-radius: 20px;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white transition-colors duration-200">
+<div class="relative min-h-screen flex items-center justify-center p-4 md:p-8">
+<!-- Main Settings Modal/Panel -->
+<div class="flex flex-col md:flex-row w-full max-w-6xl h-[85vh] bg-surface-light dark:bg-[#111a22] rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800/50">
+<!-- Left Sidebar Navigation -->
+<div class="w-full md:w-64 lg:w-72 bg-slate-50 dark:bg-[#15202b] flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 shrink-0">
+<div class="p-6">
+<div class="flex items-center gap-3 mb-8">
+<div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined">live_tv</span>
+</div>
+<div>
+<h1 class="text-base font-bold leading-tight">IPTV Manager</h1>
+<p class="text-slate-500 dark:text-slate-400 text-xs">v2.4.1 (Stable)</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/30 transition-colors">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+<span class="text-sm font-medium">General</span>
+</button>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/30 transition-colors">
+<span class="material-symbols-outlined text-[20px]">play_circle</span>
+<span class="text-sm font-medium">Player</span>
+</button>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary transition-colors">
+<span class="material-symbols-outlined fill text-[20px]">palette</span>
+<span class="text-sm font-medium">Appearance &amp; UI</span>
+</button>
+<button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/30 transition-colors">
+<span class="material-symbols-outlined text-[20px]">database</span>
+<span class="text-sm font-medium">Data &amp; Storage</span>
+</button>
+</nav>
+</div>
+<div class="p-6">
+<div class="flex items-center gap-3 px-3 py-3 rounded-xl bg-slate-100 dark:bg-[#1c2a36] border border-slate-200 dark:border-slate-700">
+<div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+<p class="text-xs font-medium text-slate-600 dark:text-slate-300">Services Operational</p>
+</div>
+</div>
+</div>
+<!-- Right Content Area -->
+<div class="flex-1 flex flex-col h-full overflow-hidden bg-surface-light dark:bg-[#111a22]">
+<!-- Header -->
+<div class="flex items-center justify-between px-8 py-6 border-b border-slate-100 dark:border-slate-800/50 shrink-0">
+<div>
+<h2 class="text-2xl font-bold tracking-tight">Appearance &amp; Utility</h2>
+<p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Manage app visuals, behavior, and local data.</p>
+</div>
+<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto settings-scroll p-8">
+<div class="max-w-3xl space-y-10">
+<!-- Section: Visuals -->
+<section>
+<h3 class="text-primary text-xs font-bold uppercase tracking-wider mb-4">Visual Preferences</h3>
+<div class="flex flex-col gap-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#16202a] overflow-hidden">
+<!-- Dark Mode Toggle -->
+<div class="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-[#1c2a36] transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-[#233648] text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined">dark_mode</span>
+</div>
+<div>
+<p class="font-medium text-base">Dark Theme</p>
+<p class="text-sm text-slate-500 dark:text-slate-400">Easier on the eyes for low-light viewing.</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="h-px bg-slate-100 dark:bg-slate-800 w-full"></div>
+<!-- Compact Mode Toggle -->
+<div class="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-[#1c2a36] transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-[#233648] text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined">format_list_bulleted</span>
+</div>
+<div>
+<p class="font-medium text-base">Compact Layout</p>
+<p class="text-sm text-slate-500 dark:text-slate-400">Reduce padding to show more channels at once.</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Section: Playback & Content -->
+<section>
+<h3 class="text-primary text-xs font-bold uppercase tracking-wider mb-4">Playback &amp; Content</h3>
+<div class="flex flex-col gap-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#16202a] overflow-hidden">
+<!-- Hide Broken Toggle -->
+<div class="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-[#1c2a36] transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-[#233648] text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined">link_off</span>
+</div>
+<div>
+<p class="font-medium text-base">Hide Broken Channels</p>
+<p class="text-sm text-slate-500 dark:text-slate-400">Automatically filter out streams reporting 404/500 errors.</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="h-px bg-slate-100 dark:bg-slate-800 w-full"></div>
+<!-- Default Player Selection -->
+<div class="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-[#1c2a36] transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-[#233648] text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined">smart_display</span>
+</div>
+<div>
+<p class="font-medium text-base">Default Player</p>
+<p class="text-sm text-slate-500 dark:text-slate-400">Choose how streams are opened.</p>
+</div>
+</div>
+<div class="relative">
+<select class="appearance-none bg-slate-50 dark:bg-[#111a22] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 py-2 pl-4 pr-10 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary focus:border-transparent outline-none cursor-pointer">
+<option>Browser (HTML5)</option>
+<option>System Default (VLC)</option>
+<option>MPV External</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+<span class="material-symbols-outlined text-[20px]">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: Data & Maintenance -->
+<section>
+<h3 class="text-red-500 dark:text-red-400 text-xs font-bold uppercase tracking-wider mb-4">Danger Zone</h3>
+<div class="rounded-xl border border-red-100 dark:border-red-900/30 bg-red-50/30 dark:bg-red-900/10 overflow-hidden p-5">
+<div class="flex items-start gap-4 mb-6">
+<div class="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined">delete_forever</span>
+</div>
+<div class="flex-1">
+<h4 class="text-base font-semibold text-slate-900 dark:text-white">Clear Cache &amp; Reset Session</h4>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                            This will remove all locally stored playlist data (approx. ~45MB) and log you out. You will need to re-import your m3u playlist.
+                                        </p>
+<!-- Storage Indicator -->
+<div class="mt-4 flex items-center gap-3">
+<div class="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[35%] rounded-full"></div>
+</div>
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">45.2 MB Used</span>
+</div>
+</div>
+</div>
+<div class="flex flex-wrap gap-3 sm:justify-end">
+<button class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                        Clear Cache Only
+                                    </button>
+<button class="px-4 py-2 rounded-lg bg-red-600 text-white font-medium text-sm hover:bg-red-700 shadow-sm shadow-red-900/20 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">logout</span>
+                                        Reset Session
+                                    </button>
+</div>
+</div>
+</section>
+</div>
+<!-- Bottom spacing -->
+<div class="h-10"></div>
+</div>
+<!-- Footer / Action Bar -->
+<div class="px-8 py-4 border-t border-slate-100 dark:border-slate-800/50 bg-white dark:bg-[#16202a] flex justify-between items-center shrink-0">
+<button class="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 text-sm font-medium">Reset to defaults</button>
+<button class="px-6 py-2.5 rounded-lg bg-primary text-white font-medium text-sm hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all transform active:scale-95">
+                        Save Changes
+                    </button>
+</div>
+</div>
+</div>
+</div>
+</body></html>

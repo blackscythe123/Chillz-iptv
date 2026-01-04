@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IPTV Player - Mobile Collapsed View</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-hidden">
+<div class="flex h-screen w-full">
+<!-- Collapsed Sidebar / Mobile Drawer Mimic -->
+<aside class="w-[72px] flex flex-col items-center justify-between bg-[#111a22] border-r border-white/5 py-6 z-30 shrink-0 transition-all">
+<div class="flex flex-col gap-8 items-center w-full">
+<!-- App Logo/Toggle -->
+<button class="flex items-center justify-center size-10 rounded-xl bg-primary/20 text-primary hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<!-- Navigation Icons -->
+<nav class="flex flex-col gap-6 w-full items-center">
+<button class="text-white/60 hover:text-white transition-colors relative group">
+<span class="material-symbols-outlined">tv</span>
+<span class="absolute left-10 top-1/2 -translate-y-1/2 bg-black/80 px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">Channels</span>
+</button>
+<button class="text-primary relative group">
+<span class="material-symbols-outlined font-variation-fill">star</span>
+<div class="absolute right-1 top-1 size-2 bg-primary rounded-full"></div>
+</button>
+<button class="text-white/60 hover:text-white transition-colors relative group">
+<span class="material-symbols-outlined">history</span>
+</button>
+<button class="text-white/60 hover:text-white transition-colors relative group">
+<span class="material-symbols-outlined">calendar_month</span>
+</button>
+</nav>
+</div>
+<div class="flex flex-col gap-6 items-center w-full">
+<button class="text-white/60 hover:text-white transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="size-8 rounded-full bg-cover bg-center border border-white/20" data-alt="User profile avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD_-7CfD6NNi5126AQUU4JaEaeaCc_i2zK5tI7vh80e8sBf3BUtp2cZ66CO3rusluW_E2ogJYD1qOxGnyN-TXv-QncMFuUBKiPzoqRXRFHTpFPAXlbbVKIkTQhIih0_KGoovHjaBvyrLVrMgNuF31OYUILhS78mxDAiwPqe8T32-YvjD5Md5ZQc9nwf97_XTHqThX1ZWuDcyZD_qvbYGkeKIfK7DB9Uo4Lc8XTY7UQi-cz-xxeWGowh0D_0DhbbItZn5iC4P_MfCI8');"></div>
+</div>
+</aside>
+<!-- Main Content Area: Immersive Player -->
+<main class="flex-1 relative flex flex-col bg-black overflow-hidden group/player">
+<!-- Video Background -->
+<div class="absolute inset-0 w-full h-full bg-cover bg-center" data-alt="Live broadcast of a news studio with blue background" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDJlctmcwl6AZaSdH9nFowvVPD2vWwUWJY4YIy_tbPPAnjtnBrfQTJ_aNd3WeHjoWvisezrojizHfr1GDCQ4H2Ut-3o-b_JMmnxCN3orb0FRJ3KlDocnpm41zT7dtkWNGOcy_wfeF4nfGJTJ3YPv--xpnsbOxfa0bpr1SZXsAHSA1G1FwLcPzOF6DdtJihIhejd19TfYBhS4Rxx9X84gI9lwoaDLQgj5lMW7Xpu-aMohXP4DyaDPE1pXq25ZXe16cD9jZLZ3O9D6Sg');">
+<!-- Simulate Video Content -->
+<div class="absolute inset-0 bg-black/10"></div>
+</div>
+<!-- Top Overlay: Header Info & External Actions -->
+<div class="absolute top-0 left-0 right-0 p-6 flex justify-between items-start bg-gradient-to-b from-black/80 via-black/40 to-transparent opacity-0 group-hover/player:opacity-100 transition-opacity duration-300 z-20">
+<div class="flex items-center gap-4">
+<div class="bg-red-600 text-white text-xs font-bold px-2 py-1 rounded animate-pulse">LIVE</div>
+<div class="flex flex-col">
+<h1 class="text-white font-bold text-lg drop-shadow-md">BBC News HD</h1>
+<p class="text-white/80 text-sm font-medium drop-shadow-sm">World News Today • 1080p • 6.5 Mbps</p>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-lg text-white text-sm font-medium transition-colors border border-white/10">
+<span class="material-symbols-outlined text-[20px]">open_in_new</span>
+<span>Open in VLC</span>
+</button>
+<button class="p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-lg text-white transition-colors border border-white/10">
+<span class="material-symbols-outlined">cast</span>
+</button>
+</div>
+</div>
+<!-- Center Overlay: Loading/Buffer or Pause State (Hidden by default, shown for demo) -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<!-- Play button could appear here on pause -->
+</div>
+<!-- Quick Channel Switcher (Floating Dock Concept) -->
+<div class="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col gap-3 p-2 rounded-full bg-black/40 backdrop-blur-md border border-white/10 translate-x-full group-hover/player:translate-x-0 transition-transform duration-300 z-20">
+<div class="size-10 rounded-full bg-white/10 hover:bg-white/20 cursor-pointer flex items-center justify-center border-2 border-primary" title="Current: BBC News">
+<div class="text-[10px] font-bold text-white">BBC</div>
+</div>
+<div class="size-10 rounded-full bg-white/10 hover:bg-white/20 cursor-pointer flex items-center justify-center border border-transparent hover:border-white/50 transition-all" title="CNN International">
+<div class="text-[10px] font-bold text-white">CNN</div>
+</div>
+<div class="size-10 rounded-full bg-white/10 hover:bg-white/20 cursor-pointer flex items-center justify-center border border-transparent hover:border-white/50 transition-all" title="Sky Sports">
+<div class="text-[10px] font-bold text-white">SKY</div>
+</div>
+<div class="size-10 rounded-full bg-white/10 hover:bg-white/20 cursor-pointer flex items-center justify-center border border-transparent hover:border-white/50 transition-all" title="Discovery Channel">
+<div class="text-[10px] font-bold text-white">DISC</div>
+</div>
+</div>
+<!-- Bottom Overlay: Controls -->
+<div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-20 pb-6 px-8 z-20 opacity-0 group-hover/player:opacity-100 transition-opacity duration-300">
+<!-- Progress Bar Area -->
+<div class="flex flex-col gap-2 mb-4 group/timeline cursor-pointer">
+<!-- Time Tooltip Placeholder (Visual only) -->
+<div class="flex justify-between items-end text-xs font-medium text-white/70 mb-1">
+<span>10:24 PM</span>
+<span class="text-red-400">-00:00:15 (Live Delay)</span>
+</div>
+<!-- The Bar -->
+<div class="relative h-1.5 w-full bg-white/20 rounded-full overflow-hidden group-hover/timeline:h-2.5 transition-all">
+<!-- Buffer -->
+<div class="absolute left-0 top-0 bottom-0 bg-white/30 w-[98%]"></div>
+<!-- Current Position -->
+<div class="absolute left-0 top-0 bottom-0 bg-primary w-[95%] relative">
+<div class="absolute right-0 top-1/2 -translate-y-1/2 size-3 bg-white rounded-full shadow opacity-0 group-hover/timeline:opacity-100"></div>
+</div>
+</div>
+</div>
+<!-- Controls Toolbar -->
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-1">
+<button class="p-2 hover:bg-white/10 rounded-full text-white transition-colors">
+<span class="material-symbols-outlined font-variation-fill">pause</span>
+</button>
+<div class="group/volume flex items-center gap-2 ml-2">
+<button class="p-2 hover:bg-white/10 rounded-full text-white transition-colors">
+<span class="material-symbols-outlined">volume_up</span>
+</button>
+<div class="w-0 overflow-hidden group-hover/volume:w-24 transition-all duration-300">
+<div class="h-1 bg-white/30 rounded-full w-20 ml-1 cursor-pointer">
+<div class="h-full w-[70%] bg-white rounded-full"></div>
+</div>
+</div>
+</div>
+<div class="h-4 w-px bg-white/20 mx-2"></div>
+<button class="flex items-center gap-2 px-3 py-1.5 hover:bg-white/10 rounded-full text-white/90 text-sm font-medium transition-colors">
+<span class="material-symbols-outlined text-[18px]">subtitles</span>
+<span>English</span>
+</button>
+</div>
+<!-- Right Side Controls -->
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-1.5 px-3 py-1.5 bg-primary rounded-lg text-white text-sm font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+<span>Fast Zapping</span>
+</button>
+<button class="p-2 hover:bg-white/10 rounded-full text-white transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="p-2 hover:bg-white/10 rounded-full text-white transition-colors">
+<span class="material-symbols-outlined">fullscreen</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Mini Info Panel (Visible always in corner, simulates TV OSD) -->
+<div class="absolute bottom-28 left-8 max-w-sm pointer-events-none transition-opacity duration-300 group-hover/player:opacity-0">
+<div class="bg-black/60 backdrop-blur-sm p-4 rounded-lg border-l-4 border-primary shadow-xl">
+<h2 class="text-white text-xl font-bold leading-tight">10:00 PM News</h2>
+<p class="text-white/70 text-sm mt-1 line-clamp-2">Detailed coverage of the latest national and international news stories, followed by weather and sports updates.</p>
+<div class="flex items-center gap-2 mt-3">
+<span class="px-1.5 py-0.5 rounded bg-white/20 text-white text-[10px] font-bold">HD</span>
+<span class="px-1.5 py-0.5 rounded bg-white/20 text-white text-[10px] font-bold">CC</span>
+<span class="text-white/50 text-xs ml-auto">Next: Weather Report (10:30 PM)</span>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Custom CSS to handle Material Symbols Variation settings if needed -->
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.font-variation-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</body></html>

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IPTV Player - Buffering Overlay</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                        "surface-dark": "#111a22",
+                        "border-dark": "#324d67",
+                        "input-bg": "#192633",
+                        "text-secondary": "#92adc9"
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for webkit browsers */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111a22; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #324d67; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #137fec; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-hidden selection:bg-primary/30">
+<div class="flex h-screen w-full overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-80 flex-shrink-0 flex flex-col bg-surface-dark border-r border-border-dark z-20">
+<!-- App Header -->
+<div class="p-4 border-b border-border-dark flex items-center justify-between">
+<div class="flex flex-col">
+<h1 class="text-white text-lg font-bold leading-tight tracking-tight">IPTV Pro</h1>
+<p class="text-text-secondary text-xs font-normal">38,412 Channels</p>
+</div>
+<button class="text-text-secondary hover:text-white transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<!-- Search Area -->
+<div class="p-4 pb-2">
+<div class="relative flex w-full items-center">
+<input class="w-full bg-input-bg border border-border-dark text-white text-sm rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder-text-secondary transition-all" placeholder="Search channels..." value=""/>
+<div class="absolute left-3 text-text-secondary flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+</div>
+</div>
+<!-- Categories Tabs -->
+<div class="px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar">
+<button class="px-3 py-1.5 rounded-full bg-primary text-white text-xs font-medium whitespace-nowrap">All Channels</button>
+<button class="px-3 py-1.5 rounded-full bg-input-bg border border-border-dark text-text-secondary hover:text-white text-xs font-medium whitespace-nowrap transition-colors">Favorites</button>
+<button class="px-3 py-1.5 rounded-full bg-input-bg border border-border-dark text-text-secondary hover:text-white text-xs font-medium whitespace-nowrap transition-colors">Sports</button>
+<button class="px-3 py-1.5 rounded-full bg-input-bg border border-border-dark text-text-secondary hover:text-white text-xs font-medium whitespace-nowrap transition-colors">Movies</button>
+</div>
+<!-- Channel List -->
+<div class="flex-1 overflow-y-auto px-2 py-2">
+<div class="flex flex-col gap-1" role="radiogroup">
+<!-- Active Channel -->
+<label class="group flex items-center gap-3 px-3 py-3 rounded-lg bg-primary/10 border border-primary/50 cursor-pointer transition-all">
+<input checked="" class="hidden" name="channel" type="radio"/>
+<div class="w-8 h-8 rounded bg-white/10 flex items-center justify-center flex-shrink-0 text-white font-bold text-xs">
+                            S1
+                        </div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-white text-sm font-medium truncate">Sports Channel 1 HD</p>
+<p class="text-primary text-xs truncate">Now Playing: Live Soccer Final</p>
+</div>
+<div class="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(19,127,236,0.6)] animate-pulse"></div>
+</label>
+<!-- Other Channels -->
+<label class="group flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-input-bg border border-transparent hover:border-border-dark cursor-pointer transition-all">
+<input class="hidden" name="channel" type="radio"/>
+<div class="w-8 h-8 rounded bg-input-bg flex items-center justify-center flex-shrink-0 text-text-secondary font-bold text-xs group-hover:text-white">
+                            BB
+                        </div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-text-secondary group-hover:text-white text-sm font-medium truncate">BBC One</p>
+<p class="text-text-secondary/60 text-xs truncate">News at Six</p>
+</div>
+</label>
+<label class="group flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-input-bg border border-transparent hover:border-border-dark cursor-pointer transition-all">
+<input class="hidden" name="channel" type="radio"/>
+<div class="w-8 h-8 rounded bg-input-bg flex items-center justify-center flex-shrink-0 text-text-secondary font-bold text-xs group-hover:text-white">
+                            CN
+                        </div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-text-secondary group-hover:text-white text-sm font-medium truncate">CNN International</p>
+<p class="text-text-secondary/60 text-xs truncate">Global Markets Today</p>
+</div>
+</label>
+<label class="group flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-input-bg border border-transparent hover:border-border-dark cursor-pointer transition-all">
+<input class="hidden" name="channel" type="radio"/>
+<div class="w-8 h-8 rounded bg-input-bg flex items-center justify-center flex-shrink-0 text-text-secondary font-bold text-xs group-hover:text-white">
+                            DC
+                        </div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-text-secondary group-hover:text-white text-sm font-medium truncate">Discovery Channel</p>
+<p class="text-text-secondary/60 text-xs truncate">Gold Rush: Season 12</p>
+</div>
+</label>
+<label class="group flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-input-bg border border-transparent hover:border-border-dark cursor-pointer transition-all">
+<input class="hidden" name="channel" type="radio"/>
+<div class="w-8 h-8 rounded bg-input-bg flex items-center justify-center flex-shrink-0 text-text-secondary font-bold text-xs group-hover:text-white">
+                            NG
+                        </div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-text-secondary group-hover:text-white text-sm font-medium truncate">Nat Geo Wild</p>
+<p class="text-text-secondary/60 text-xs truncate">Safari Live</p>
+</div>
+</label>
+<label class="group flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-input-bg border border-transparent hover:border-border-dark cursor-pointer transition-all">
+<input class="hidden" name="channel" type="radio"/>
+<div class="w-8 h-8 rounded bg-input-bg flex items-center justify-center flex-shrink-0 text-text-secondary font-bold text-xs group-hover:text-white">
+                            SK
+                        </div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-text-secondary group-hover:text-white text-sm font-medium truncate">Sky News</p>
+<p class="text-text-secondary/60 text-xs truncate">Breaking News</p>
+</div>
+</label>
+<label class="group flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-input-bg border border-transparent hover:border-border-dark cursor-pointer transition-all">
+<input class="hidden" name="channel" type="radio"/>
+<div class="w-8 h-8 rounded bg-input-bg flex items-center justify-center flex-shrink-0 text-text-secondary font-bold text-xs group-hover:text-white">
+                            MT
+                        </div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-text-secondary group-hover:text-white text-sm font-medium truncate">MTV Hits</p>
+<p class="text-text-secondary/60 text-xs truncate">Top 40 Countdown</p>
+</div>
+</label>
+<label class="group flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-input-bg border border-transparent hover:border-border-dark cursor-pointer transition-all">
+<input class="hidden" name="channel" type="radio"/>
+<div class="w-8 h-8 rounded bg-input-bg flex items-center justify-center flex-shrink-0 text-text-secondary font-bold text-xs group-hover:text-white">
+                            HB
+                        </div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-text-secondary group-hover:text-white text-sm font-medium truncate">HBO</p>
+<p class="text-text-secondary/60 text-xs truncate">The Last of Us</p>
+</div>
+</label>
+<label class="group flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-input-bg border border-transparent hover:border-border-dark cursor-pointer transition-all">
+<input class="hidden" name="channel" type="radio"/>
+<div class="w-8 h-8 rounded bg-input-bg flex items-center justify-center flex-shrink-0 text-text-secondary font-bold text-xs group-hover:text-white">
+                            ES
+                        </div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-text-secondary group-hover:text-white text-sm font-medium truncate">ESPN</p>
+<p class="text-text-secondary/60 text-xs truncate">SportsCenter</p>
+</div>
+</label>
+</div>
+</div>
+<!-- User Profile / Footer -->
+<div class="p-4 border-t border-border-dark mt-auto bg-surface-dark">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center text-white text-xs font-bold">
+                        JD
+                    </div>
+<div class="flex flex-col">
+<p class="text-white text-sm font-medium">John Doe</p>
+<p class="text-text-secondary text-xs">Premium Plan</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0 h-full relative">
+<!-- Top Navigation / Breadcrumbs -->
+<div class="h-16 px-6 border-b border-border-dark flex items-center justify-between bg-surface-dark/95 backdrop-blur-sm z-10">
+<div class="flex items-center gap-2">
+<button class="md:hidden text-text-secondary hover:text-white">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<span class="text-text-secondary text-sm">Live TV</span>
+<span class="material-symbols-outlined text-text-secondary text-sm">chevron_right</span>
+<span class="text-text-secondary text-sm">Sports</span>
+<span class="material-symbols-outlined text-text-secondary text-sm">chevron_right</span>
+<span class="text-white text-sm font-medium">Sports Channel 1 HD</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 text-text-secondary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[20px]">cast</span>
+<span class="text-sm font-medium hidden sm:block">Cast</span>
+</button>
+<button class="flex items-center gap-2 text-text-secondary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[20px]">picture_in_picture_alt</span>
+</button>
+</div>
+</div>
+<!-- Content Body -->
+<div class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 flex flex-col gap-6">
+<!-- Video Player Container -->
+<div class="w-full max-w-[1200px] mx-auto flex flex-col gap-4">
+<!-- Player Screen -->
+<div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl ring-1 ring-border-dark group">
+<!-- Video Placeholder Background -->
+<div class="absolute inset-0 bg-cover bg-center opacity-60 grayscale-[30%]" data-alt="Blurred background image of a sports stadium" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA12EAlShbm1O5K82egLdbHErIkMZqZ3d5fkBnujy0PhIwz6mJ-pzog-XSnG9XM-JP7R3VJxNAOVjgReTPkZdJZT2j6htnWTnPtJ_xo8kY8F1AVzlZR7LQ0ISjFVSywo_MMrVGPPCTwQOtL_gDAd0vATBQJn1XcKXi4npmSM5TOGLdKDJB9ahqlVgZxp-gtRc_cmSKvm2ugv_9VRaDRhuIzEofS6wddpFbFbezFAEoBkHNVB6EhN_0b7bvGq4P05XY1vu0g9ybznvs');">
+</div>
+<!-- Buffering Overlay (Backdrop Blur) -->
+<div class="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-20">
+<!-- Central Loading State -->
+<div class="flex flex-col items-center gap-6 p-6 rounded-2xl bg-surface-dark/40 border border-white/5 backdrop-blur-md shadow-xl animate-in fade-in duration-500">
+<!-- Spinner -->
+<div class="relative w-16 h-16">
+<div class="absolute inset-0 rounded-full border-4 border-border-dark opacity-30"></div>
+<div class="absolute inset-0 rounded-full border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
+</div>
+<div class="flex flex-col items-center gap-2 text-center max-w-[280px]">
+<h2 class="text-white text-lg font-semibold tracking-tight">Buffering...</h2>
+<p class="text-text-secondary text-sm">Stream reconnecting / retrying. This might take a few seconds.</p>
+</div>
+<!-- Progress Bar inside overlay -->
+<div class="w-48 flex flex-col gap-2">
+<div class="flex justify-between text-xs text-text-secondary font-medium">
+<span>Loading</span>
+<span>45%</span>
+</div>
+<div class="h-1.5 w-full bg-black/50 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-[45%] animate-pulse"></div>
+</div>
+</div>
+<!-- Action Button -->
+<button class="mt-2 flex items-center gap-2 px-4 py-2 bg-primary/20 hover:bg-primary/30 border border-primary/50 text-primary hover:text-white rounded-lg text-sm font-medium transition-all group/btn">
+<span class="material-symbols-outlined text-[18px] group-hover/btn:rotate-180 transition-transform">refresh</span>
+                                    Reload Player
+                                </button>
+</div>
+</div>
+<!-- Player Controls (Dimmed/Inactive) -->
+<div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 to-transparent z-30 pointer-events-none opacity-70">
+<!-- Progress Bar (Main) -->
+<div class="relative w-full h-1 bg-white/20 rounded-full mb-4 cursor-not-allowed">
+<div class="absolute top-0 left-0 h-full w-[60%] bg-primary rounded-full"></div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4 text-white/70">
+<span class="material-symbols-outlined text-[28px]">play_arrow</span>
+<div class="flex items-center gap-2 group/volume">
+<span class="material-symbols-outlined text-[24px]">volume_up</span>
+<div class="w-0 overflow-hidden group-hover/volume:w-20 transition-all duration-300">
+<div class="h-1 bg-white/30 rounded-full w-full ml-2">
+<div class="h-full w-[70%] bg-white rounded-full"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2 ml-2">
+<div class="w-2 h-2 rounded-full bg-red-500"></div>
+<span class="text-xs font-medium uppercase tracking-wider text-red-400">Live</span>
+</div>
+</div>
+<div class="flex items-center gap-4 text-white/70">
+<span class="text-xs font-medium bg-white/10 px-2 py-1 rounded">1080p</span>
+<span class="material-symbols-outlined text-[24px]">subtitles</span>
+<span class="material-symbols-outlined text-[24px]">settings</span>
+<span class="material-symbols-outlined text-[28px]">fullscreen</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Player Footer Info -->
+<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 px-1">
+<div class="flex flex-col gap-1">
+<h2 class="text-white text-xl font-bold">Live Soccer Final: City vs United</h2>
+<p class="text-text-secondary text-sm">Sports Channel 1 HD • 1080p • 60FPS</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center justify-center gap-2 px-4 py-2 bg-surface-dark border border-border-dark hover:border-text-secondary text-white text-sm font-medium rounded-lg transition-colors">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+                                Add to Favorites
+                            </button>
+<button class="flex items-center justify-center gap-2 px-4 py-2 bg-surface-dark border border-border-dark hover:border-text-secondary text-white text-sm font-medium rounded-lg transition-colors">
+<span class="material-symbols-outlined text-[18px]">share</span>
+                                Share
+                            </button>
+<button class="flex items-center justify-center gap-2 px-4 py-2 bg-surface-dark border border-border-dark hover:border-text-secondary text-white text-sm font-medium rounded-lg transition-colors">
+<span class="material-symbols-outlined text-[18px]">report_problem</span>
+                                Report Issue
+                            </button>
+</div>
+</div>
+<!-- EPG / Up Next -->
+<div class="mt-4 rounded-xl border border-border-dark bg-surface-dark overflow-hidden">
+<div class="px-4 py-3 border-b border-border-dark bg-input-bg/50">
+<h3 class="text-white text-sm font-semibold">TV Guide</h3>
+</div>
+<div class="divide-y divide-border-dark">
+<div class="flex items-center gap-4 p-4 hover:bg-input-bg/30 transition-colors bg-primary/5">
+<div class="w-16 text-right">
+<span class="text-primary text-sm font-bold">Now</span>
+</div>
+<div class="flex-1">
+<p class="text-white text-sm font-medium">Live Soccer Final: City vs United</p>
+<p class="text-text-secondary text-xs">14:00 - 16:00</p>
+</div>
+<div class="hidden sm:block">
+<span class="px-2 py-1 rounded bg-primary/20 text-primary text-xs font-medium">Sports</span>
+</div>
+</div>
+<div class="flex items-center gap-4 p-4 hover:bg-input-bg/30 transition-colors opacity-60">
+<div class="w-16 text-right">
+<span class="text-text-secondary text-sm font-medium">16:00</span>
+</div>
+<div class="flex-1">
+<p class="text-white text-sm font-medium">Post-Match Analysis</p>
+<p class="text-text-secondary text-xs">16:00 - 16:30</p>
+</div>
+<div class="hidden sm:block">
+<span class="px-2 py-1 rounded bg-input-bg text-text-secondary text-xs font-medium">Sports</span>
+</div>
+</div>
+<div class="flex items-center gap-4 p-4 hover:bg-input-bg/30 transition-colors opacity-60">
+<div class="w-16 text-right">
+<span class="text-text-secondary text-sm font-medium">16:30</span>
+</div>
+<div class="flex-1">
+<p class="text-white text-sm font-medium">Sports Center Evening</p>
+<p class="text-text-secondary text-xs">16:30 - 17:30</p>
+</div>
+<div class="hidden sm:block">
+<span class="px-2 py-1 rounded bg-input-bg text-text-secondary text-xs font-medium">News</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

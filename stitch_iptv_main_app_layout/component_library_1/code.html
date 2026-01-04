@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IPTV Component Library</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=Noto+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "primary-hover": "#0f6bd0",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                        "surface-dark": "#1a2632",
+                        "surface-light": "#ffffff",
+                        "border-dark": "#2d3b4a",
+                        "border-light": "#e5e7eb",
+                        "text-secondary-dark": "#92adc9",
+                        "text-secondary-light": "#64748b",
+                        "success": "#10b981",
+                        "warning": "#f59e0b",
+                        "error": "#ef4444",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "Noto Sans", "sans-serif"],
+                        "mono": ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for better desktop experience */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #101922; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2d3b4a; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3f5061; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white antialiased selection:bg-primary selection:text-white">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Header Section -->
+<header class="border-b border-border-light dark:border-border-dark bg-surface-light/80 dark:bg-background-dark/80 backdrop-blur sticky top-0 z-50">
+<div class="mx-auto max-w-[1200px] px-6 py-5">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center size-10 rounded-lg bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-[24px]">grid_view</span>
+</div>
+<h1 class="text-3xl font-black tracking-tight">IPTV UI Kit</h1>
+</div>
+<p class="text-text-secondary-light dark:text-text-secondary-dark text-base max-w-2xl">
+                        Design system documentation for the desktop IPTV playlist viewer. 
+                        Optimized for high-density lists (38k+ channels), dark mode, and keyboard navigation.
+                    </p>
+</div>
+</div>
+</header>
+<main class="mx-auto flex w-full max-w-[1200px] flex-1 flex-col gap-12 px-6 py-10">
+<!-- Section: Foundations (Colors & Type) -->
+<section>
+<div class="border-b border-border-light dark:border-border-dark pb-4 mb-8">
+<h2 class="text-xl font-bold tracking-tight">01. Foundations</h2>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+<!-- Colors -->
+<div class="flex flex-col gap-6">
+<h3 class="text-sm font-semibold uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark">Color Palette</h3>
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+<!-- Primary -->
+<div class="space-y-2">
+<div class="h-20 w-full rounded-lg bg-primary shadow-sm ring-1 ring-inset ring-black/5"></div>
+<div class="flex flex-col">
+<span class="text-sm font-medium">Primary</span>
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark font-mono">#137fec</span>
+</div>
+</div>
+<!-- Background Dark -->
+<div class="space-y-2">
+<div class="h-20 w-full rounded-lg bg-background-dark shadow-sm ring-1 ring-white/10"></div>
+<div class="flex flex-col">
+<span class="text-sm font-medium">Background</span>
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark font-mono">#101922</span>
+</div>
+</div>
+<!-- Surface -->
+<div class="space-y-2">
+<div class="h-20 w-full rounded-lg bg-surface-dark shadow-sm ring-1 ring-white/10"></div>
+<div class="flex flex-col">
+<span class="text-sm font-medium">Surface</span>
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark font-mono">#1a2632</span>
+</div>
+</div>
+<!-- Success -->
+<div class="space-y-2">
+<div class="h-20 w-full rounded-lg bg-success shadow-sm"></div>
+<div class="flex flex-col">
+<span class="text-sm font-medium">Success</span>
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark font-mono">#10b981</span>
+</div>
+</div>
+<!-- Warning -->
+<div class="space-y-2">
+<div class="h-20 w-full rounded-lg bg-warning shadow-sm"></div>
+<div class="flex flex-col">
+<span class="text-sm font-medium">Warning</span>
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark font-mono">#f59e0b</span>
+</div>
+</div>
+<!-- Error -->
+<div class="space-y-2">
+<div class="h-20 w-full rounded-lg bg-error shadow-sm"></div>
+<div class="flex flex-col">
+<span class="text-sm font-medium">Error</span>
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark font-mono">#ef4444</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Typography -->
+<div class="flex flex-col gap-6">
+<h3 class="text-sm font-semibold uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark">Typography (Inter)</h3>
+<div class="flex flex-col gap-4 rounded-xl border border-border-light dark:border-border-dark p-6 bg-surface-light dark:bg-surface-dark">
+<div class="grid grid-cols-[80px_1fr] items-baseline gap-4 border-b border-border-light dark:border-white/5 pb-2">
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark font-mono">H1 / 32px</span>
+<h1 class="text-3xl font-bold">The quick brown fox</h1>
+</div>
+<div class="grid grid-cols-[80px_1fr] items-baseline gap-4 border-b border-border-light dark:border-white/5 pb-2">
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark font-mono">H2 / 24px</span>
+<h2 class="text-2xl font-bold">The quick brown fox</h2>
+</div>
+<div class="grid grid-cols-[80px_1fr] items-baseline gap-4 border-b border-border-light dark:border-white/5 pb-2">
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark font-mono">H3 / 18px</span>
+<h3 class="text-lg font-semibold">The quick brown fox jumps over the lazy dog</h3>
+</div>
+<div class="grid grid-cols-[80px_1fr] items-baseline gap-4 border-b border-border-light dark:border-white/5 pb-2">
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark font-mono">Body / 14px</span>
+<p class="text-sm font-normal text-text-secondary-light dark:text-text-secondary-dark">The quick brown fox jumps over the lazy dog. Used for descriptions and list items.</p>
+</div>
+<div class="grid grid-cols-[80px_1fr] items-baseline gap-4">
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark font-mono">Caption / 12px</span>
+<p class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wide">METADATA LABEL</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: Interactive -->
+<section>
+<div class="border-b border-border-light dark:border-border-dark pb-4 mb-8">
+<h2 class="text-xl font-bold tracking-tight">02. Interactive Elements</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Buttons -->
+<div class="flex flex-col gap-6">
+<h3 class="text-sm font-semibold uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark">Buttons</h3>
+<div class="flex flex-col gap-3 items-start">
+<button class="inline-flex h-9 items-center justify-center rounded bg-primary px-4 text-sm font-semibold text-white transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background-dark">
+                                Primary Action
+                            </button>
+<button class="inline-flex h-9 items-center justify-center rounded border border-border-dark bg-surface-dark px-4 text-sm font-medium text-white transition hover:bg-border-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background-dark">
+                                Secondary Action
+                            </button>
+<button class="inline-flex h-9 items-center justify-center rounded px-4 text-sm font-medium text-text-secondary-dark hover:text-white transition focus:outline-none">
+                                Ghost / Text
+                            </button>
+<div class="flex gap-2">
+<button class="inline-flex size-9 items-center justify-center rounded-full bg-primary text-white transition hover:bg-primary-hover">
+<span class="material-symbols-outlined text-[20px]">play_arrow</span>
+</button>
+<button class="inline-flex size-9 items-center justify-center rounded-full border border-border-dark bg-surface-dark text-text-secondary-dark transition hover:bg-border-dark hover:text-white">
+<span class="material-symbols-outlined text-[20px]">favorite</span>
+</button>
+<button class="inline-flex size-9 items-center justify-center rounded-full text-text-secondary-dark transition hover:bg-white/5 hover:text-white">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Form Inputs -->
+<div class="flex flex-col gap-6">
+<h3 class="text-sm font-semibold uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark">Inputs</h3>
+<div class="flex flex-col gap-4 max-w-xs">
+<!-- Search -->
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-text-secondary-dark">search</span>
+<input class="h-10 w-full rounded border border-border-dark bg-surface-dark pl-10 pr-4 text-sm text-white placeholder-text-secondary-dark focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" placeholder="Search 38,000 channels..." type="text"/>
+</div>
+<!-- Select -->
+<div class="relative">
+<select class="h-10 w-full appearance-none rounded border border-border-dark bg-surface-dark px-4 text-sm text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
+<option>Select Category</option>
+<option>Sports</option>
+<option>Movies</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-lg text-text-secondary-dark pointer-events-none">expand_more</span>
+</div>
+<!-- Switches & Checks -->
+<div class="flex items-center gap-4">
+<label class="flex items-center gap-2 cursor-pointer">
+<div class="relative inline-flex h-6 w-11 items-center rounded-full bg-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+<span class="inline-block h-4 w-4 transform rounded-full bg-white transition translate-x-6"></span>
+</div>
+<span class="text-sm font-medium">On</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer">
+<div class="relative inline-flex h-6 w-11 items-center rounded-full bg-border-dark transition-colors">
+<span class="inline-block h-4 w-4 transform rounded-full bg-white transition translate-x-1"></span>
+</div>
+<span class="text-sm font-medium text-text-secondary-dark">Off</span>
+</label>
+</div>
+<div class="flex items-center gap-4">
+<label class="flex items-center gap-2 cursor-pointer">
+<input checked="" class="size-4 rounded border-border-dark bg-surface-dark text-primary focus:ring-primary focus:ring-offset-background-dark" type="checkbox"/>
+<span class="text-sm">Select</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer">
+<input checked="" class="size-4 border-border-dark bg-surface-dark text-primary focus:ring-primary focus:ring-offset-background-dark" name="radio-demo" type="radio"/>
+<span class="text-sm">Option</span>
+</label>
+</div>
+</div>
+</div>
+<!-- Chips & Badges -->
+<div class="flex flex-col gap-6">
+<h3 class="text-sm font-semibold uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark">Data Attributes</h3>
+<div class="flex flex-col gap-4">
+<!-- Status Badges -->
+<div class="flex flex-wrap gap-2">
+<span class="inline-flex items-center rounded bg-success/15 px-2 py-1 text-xs font-semibold text-success ring-1 ring-inset ring-success/20">LIVE</span>
+<span class="inline-flex items-center rounded bg-warning/15 px-2 py-1 text-xs font-semibold text-warning ring-1 ring-inset ring-warning/20">BUFFERING</span>
+<span class="inline-flex items-center rounded bg-error/15 px-2 py-1 text-xs font-semibold text-error ring-1 ring-inset ring-error/20">OFFLINE</span>
+<span class="inline-flex items-center rounded bg-border-dark px-2 py-1 text-xs font-semibold text-text-secondary-dark ring-1 ring-inset ring-white/10">VLC REQ</span>
+</div>
+<!-- Category Tags -->
+<div class="flex flex-wrap gap-2">
+<span class="inline-flex items-center gap-1 rounded-full border border-border-dark bg-surface-dark px-3 py-1 text-xs font-medium hover:border-primary/50 cursor-pointer transition">
+<span class="material-symbols-outlined text-[14px]">public</span>
+                                    USA
+                                </span>
+<span class="inline-flex items-center gap-1 rounded-full border border-border-dark bg-surface-dark px-3 py-1 text-xs font-medium hover:border-primary/50 cursor-pointer transition">
+<span class="material-symbols-outlined text-[14px]">sports_soccer</span>
+                                    Sports
+                                </span>
+<span class="inline-flex items-center gap-1 rounded-full border border-border-dark bg-surface-dark px-3 py-1 text-xs font-medium hover:border-primary/50 cursor-pointer transition">
+<span class="material-symbols-outlined text-[14px]">movie</span>
+                                    Movies
+                                </span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: Components -->
+<section>
+<div class="border-b border-border-light dark:border-border-dark pb-4 mb-8">
+<h2 class="text-xl font-bold tracking-tight">03. Complex Components</h2>
+</div>
+<div class="flex flex-col gap-10">
+<!-- Navigation Tabs -->
+<div class="space-y-4">
+<h3 class="text-sm font-semibold uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark">Navigation Tabs</h3>
+<div class="border-b border-border-dark">
+<nav aria-label="Tabs" class="-mb-px flex space-x-8">
+<a aria-current="page" class="border-b-2 border-primary py-4 px-1 text-sm font-semibold text-primary" href="#">
+                                    All Channels
+                                </a>
+<a class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-text-secondary-dark hover:border-text-secondary-light hover:text-text-secondary-light" href="#">
+                                    Favorites
+                                </a>
+<a class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-text-secondary-dark hover:border-text-secondary-light hover:text-text-secondary-light" href="#">
+                                    History
+                                </a>
+<a class="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-text-secondary-dark hover:border-text-secondary-light hover:text-text-secondary-light" href="#">
+                                    Settings
+                                </a>
+</nav>
+</div>
+</div>
+<!-- Channel List Item (Density Showcase) -->
+<div class="space-y-4">
+<div class="flex justify-between items-end">
+<h3 class="text-sm font-semibold uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark">Channel List Row (High Density)</h3>
+<span class="text-xs text-text-secondary-dark">Height: 56px | Padding: py-2</span>
+</div>
+<div class="flex flex-col rounded-lg border border-border-dark bg-surface-dark overflow-hidden">
+<!-- List Header -->
+<div class="flex items-center gap-4 border-b border-border-dark bg-background-dark/50 px-4 py-2 text-xs font-medium uppercase tracking-wider text-text-secondary-dark">
+<div class="w-8">#</div>
+<div class="w-12">Logo</div>
+<div class="flex-1">Channel Name / Program</div>
+<div class="w-24 text-right">Status</div>
+<div class="w-10"></div>
+</div>
+<!-- Row 1 (Active/Playing) -->
+<div class="group flex items-center gap-4 border-b border-border-dark bg-primary/10 px-4 py-2 hover:bg-surface-dark transition cursor-pointer relative">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<div class="w-8 text-sm font-mono text-primary">102</div>
+<div class="w-12 h-8 rounded bg-white flex items-center justify-center overflow-hidden shrink-0">
+<img class="w-full h-full object-contain p-1" data-alt="BBC News Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7xF4G0CCyurfxAUKa00iLpLeOUCjbAXTlAXhjuzfE_ZrVgdV5SDA3v6yW4rJX1aHyLkrEdfQktAggcU-XaSOdwpjp8PFNammPegbv1DocLcOCRQNL7rNwr-enq3oMPGFxF9d_YSuDKxf_3R5tQZlKg3BOQyJ9Xr1H0ilz0z_FB2aV73clPZuYIMfdtttUrybpdtnf4_0JQ4ThdsXn2tvJpyU07M8hsW_5ZFOZcao3MuRe_3F6RfAVeqC-Dou7CYHdb1D2V4qfhEQ"/>
+</div>
+<div class="flex flex-1 flex-col justify-center gap-0.5 overflow-hidden">
+<div class="flex items-center gap-2">
+<span class="truncate text-sm font-bold text-white">BBC News HD</span>
+<span class="inline-flex rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-bold text-primary">HD</span>
+</div>
+<div class="flex items-center gap-2 w-full">
+<span class="truncate text-xs text-text-secondary-dark max-w-[200px]">18:00 - Global News Hour</span>
+<div class="h-1 flex-1 max-w-[100px] rounded-full bg-border-dark overflow-hidden">
+<div class="h-full w-3/4 bg-primary rounded-full"></div>
+</div>
+</div>
+</div>
+<div class="w-24 text-right">
+<span class="inline-flex items-center rounded bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success ring-1 ring-inset ring-success/20">LIVE</span>
+</div>
+<div class="w-10 flex justify-end">
+<button class="text-text-secondary-dark hover:text-white transition">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Row 2 (Standard) -->
+<div class="group flex items-center gap-4 border-b border-border-dark px-4 py-2 hover:bg-white/5 transition cursor-pointer">
+<div class="w-8 text-sm font-mono text-text-secondary-dark">103</div>
+<div class="w-12 h-8 rounded bg-white flex items-center justify-center overflow-hidden shrink-0">
+<img class="w-full h-full object-contain p-1" data-alt="CNN Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGfFYgHaMWVBDWt_ZRCwrQRZmX4yLTvtSd5tBHMmhghsn4YsVHPoX0-pdv6XQjflUQFmvyzzyGUTh8aJJH9sOYJyedmqrdKoqit3CyxgGfnDw9CmofBZCg-xrN3Mhk5FZ-jjTaheEoew9eqNgAfsWOX-v4FCVK6PnvEq_TQsitrvIiRTehfczHHhrgxeBSD0sCAHTFN7wVgrye6QKSAYi5FanUy0kPoT_loxyRSqVptarlDDBzmbug_DcvlZ2BRwWudveKpc7XGlQ"/>
+</div>
+<div class="flex flex-1 flex-col justify-center gap-0.5 overflow-hidden">
+<div class="flex items-center gap-2">
+<span class="truncate text-sm font-medium text-white">CNN International</span>
+<span class="inline-flex rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-bold text-text-secondary-dark">SD</span>
+</div>
+<div class="flex items-center gap-2 w-full">
+<span class="truncate text-xs text-text-secondary-dark">18:30 - Marketplace Africa</span>
+</div>
+</div>
+<div class="w-24 text-right">
+<!-- No badge implies standard/unknown -->
+</div>
+<div class="w-10 flex justify-end">
+<button class="text-text-secondary-dark hover:text-white opacity-0 group-hover:opacity-100 transition">
+<span class="material-symbols-outlined text-[20px]">star</span>
+</button>
+</div>
+</div>
+<!-- Row 3 (Offline) -->
+<div class="group flex items-center gap-4 px-4 py-2 hover:bg-white/5 transition cursor-pointer opacity-60">
+<div class="w-8 text-sm font-mono text-text-secondary-dark">104</div>
+<div class="w-12 h-8 rounded bg-white/10 flex items-center justify-center overflow-hidden shrink-0">
+<span class="material-symbols-outlined text-text-secondary-dark">tv_off</span>
+</div>
+<div class="flex flex-1 flex-col justify-center gap-0.5 overflow-hidden">
+<div class="flex items-center gap-2">
+<span class="truncate text-sm font-medium text-text-secondary-dark decoration-slice">Sky Sports Main Event</span>
+</div>
+<div class="flex items-center gap-2 w-full">
+<span class="truncate text-xs text-text-secondary-dark">No Program Data</span>
+</div>
+</div>
+<div class="w-24 text-right">
+<span class="inline-flex items-center rounded bg-error/15 px-2 py-0.5 text-[10px] font-bold text-error ring-1 ring-inset ring-error/20">OFFLINE</span>
+</div>
+<div class="w-10 flex justify-end">
+<button class="text-text-secondary-dark hover:text-white opacity-0 group-hover:opacity-100 transition">
+<span class="material-symbols-outlined text-[20px]">refresh</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Compact Card Grid (Alternative View) -->
+<div class="space-y-4">
+<h3 class="text-sm font-semibold uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark">Compact Channel Card</h3>
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+<!-- Card 1 -->
+<div class="group relative flex flex-col gap-2 rounded-lg border border-border-dark bg-surface-dark p-3 transition hover:border-primary hover:shadow-lg hover:shadow-primary/10 cursor-pointer">
+<div class="absolute right-2 top-2 z-10 opacity-0 group-hover:opacity-100 transition">
+<button class="rounded-full bg-black/60 p-1 text-white hover:bg-primary">
+<span class="material-symbols-outlined text-[16px]">favorite</span>
+</button>
+</div>
+<div class="aspect-video w-full overflow-hidden rounded bg-black/40 flex items-center justify-center">
+<img class="h-8 object-contain" data-alt="National Geographic Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtlfbzOevc-35aYPKHhWdNPbSIzuCrxnH_2sTQ59cNNW36kv2fxgkQakBakfIdN6WNVkEPacS0BkdDeQ9EOLkrTv9eMjJXbgwmRXgxgV70gLk-_KKTcVIVah5FWnhFzTVwUo4vTezYhMq6lBozFQHH1IFKqlf1nhFbeRSaf_6p9P1fHS6Ks2Yiyfcq-DjXcHIlYRIAGWZUhFQwcZ8u4QZjW4mkS97x4e4Wv9TuNv_nQ33rfOGIt_OD4oQi9kgCY4GHZK5Ica3s4V0"/>
+</div>
+<div class="flex flex-col gap-0.5">
+<h4 class="truncate text-sm font-semibold text-white">Nat Geo Wild</h4>
+<p class="truncate text-xs text-text-secondary-dark">Sharkfest 2024</p>
+</div>
+<div class="mt-1 h-1 w-full rounded-full bg-border-dark">
+<div class="h-full w-1/2 rounded-full bg-primary"></div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group relative flex flex-col gap-2 rounded-lg border border-border-dark bg-surface-dark p-3 transition hover:border-primary hover:shadow-lg hover:shadow-primary/10 cursor-pointer">
+<div class="absolute right-2 top-2 z-10 opacity-0 group-hover:opacity-100 transition">
+<button class="rounded-full bg-black/60 p-1 text-white hover:bg-primary">
+<span class="material-symbols-outlined text-[16px]">favorite</span>
+</button>
+</div>
+<div class="aspect-video w-full overflow-hidden rounded bg-black/40 flex items-center justify-center relative">
+<img class="h-6 object-contain grayscale opacity-50" data-alt="HBO Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjfuur8LpAYSF5iIJ0-BHkmijPKXUYHEmeZiyaai-_vDJGwq114jmZiLsOwaUE_bW32BzGjUTf1gGWY_4NQvoO9cyVLqOBXU5nMtR4-Ko2qlxzmOrjdQ8L2L8SIGuH6at300Dv7JVXI2bMxbriS1JM7Yd1GvQftlaGgAESdsJkW7N6QQwEwoo64qupjxhd_LZ6dThVHbDyqCmsTPx1gwRIwUE4E9zhM6FstFO3klwJzwapnMQMLpdLtnQsto-ieYWtQbbk9FF14-I"/>
+<div class="absolute inset-0 flex items-center justify-center bg-black/60">
+<span class="material-symbols-outlined text-white/50 text-2xl">lock</span>
+</div>
+</div>
+<div class="flex flex-col gap-0.5">
+<h4 class="truncate text-sm font-semibold text-text-secondary-dark">HBO Signature</h4>
+<p class="truncate text-xs text-text-secondary-dark">Encrypted</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Player UI Elements -->
+<div class="space-y-4">
+<h3 class="text-sm font-semibold uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark">Video Player Overlay</h3>
+<div class="relative h-48 w-full overflow-hidden rounded-xl bg-black border border-border-dark group">
+<!-- Background Simulation -->
+<div class="absolute inset-0 bg-gradient-to-r from-blue-900 to-slate-900 opacity-50" data-alt="Abstract video background gradient"></div>
+<!-- Controls Overlay -->
+<div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+<div class="mb-2 h-1 w-full cursor-pointer rounded-full bg-white/20 hover:h-1.5 transition-all">
+<div class="relative h-full w-[65%] rounded-full bg-primary">
+<div class="absolute right-0 top-1/2 size-3 -translate-y-1/2 scale-0 rounded-full bg-white transition group-hover:scale-100"></div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<button class="text-white hover:text-primary transition"><span class="material-symbols-outlined">play_arrow</span></button>
+<button class="text-white hover:text-primary transition"><span class="material-symbols-outlined">volume_up</span></button>
+<div class="flex flex-col">
+<span class="text-sm font-bold text-white">Discovery Channel</span>
+<span class="text-xs text-gray-300">Gold Rush: Alaska • 14:00 - 15:00</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-white hover:text-primary transition"><span class="material-symbols-outlined">subtitles</span></button>
+<button class="text-white hover:text-primary transition"><span class="material-symbols-outlined">settings</span></button>
+<button class="text-white hover:text-primary transition"><span class="material-symbols-outlined">fullscreen</span></button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<footer class="mt-12 border-t border-border-light dark:border-border-dark py-8 text-center">
+<p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">
+                © 2023 IPTV Desktop App. Internal Design System.
+            </p>
+</footer>
+</div>
+</body></html>
