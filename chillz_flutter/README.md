@@ -1,38 +1,49 @@
-# chillz_flutter
+# Chillz (Flutter Windows • libVLC)
 
-Flutter Windows desktop IPTV player using **libvlc** for reliable video playback.
+**Chillz** is a **Windows desktop IPTV player** built with **Flutter** and **direct libVLC integration**, designed for **stable HLS playback**, **VLC-grade reliability**, and a **custom Flutter UI**.
+
+This project embeds **libVLC natively** (child HWND) instead of relying on fragile media wrappers, ensuring better compatibility with real-world IPTV streams.
+
+---
+
+## Key Features
+
+- 🎬 **Direct libVLC integration**
+  - No external VLC installation required
+  - Uses bundled libVLC binaries
+  - Same playback core as VLC Desktop
+
+- 🖥️ **True Windows desktop player**
+  - Video rendered inside Flutter layout (no extra VLC window)
+  - Fullscreen & windowed modes fully controlled by Flutter
+  - Keyboard-first UX like VLC
+
+- 📡 **Real IPTV support**
+  - HLS (`.m3u8`) live streams
+  - Handles unstable and imperfect IPTV sources
+  - Graceful handling of broken metadata, logos, and DNS failures
+
+- 🔊 **Advanced audio controls**
+  - Multiple audio track selection
+  - VLC-style volume amplification up to **200%**
+  - No “ghost audio” when switching channels
+
+- ⚡ **Performance-focused**
+  - Hardware-accelerated decoding
+  - Native video rendering
+  - Minimal UI overhead
+
+---
 
 ## Quick Start
 
+### Requirements
+- Windows 10 / 11 (64-bit)
+- Flutter (stable channel)
+- Visual Studio Build Tools (Desktop development with C++)
+
+### Run the app
+
 ```bash
-# Get dependencies
 flutter pub get
-
-# Run the app
 flutter run -d windows
-```
-
-> **Note:** Due to Windows path length limits, if your project is in a deeply nested folder (like OneDrive), you may need to copy it to a shorter path like `C:\Temp\chillz_flutter` before building.
-
-## How It Works
-
-- **Self-contained**: Uses **libvlc** which bundles all required video libraries automatically
-- **No external dependencies**: Everything needed for video playback is included
-- **Hardware acceleration**: Supports hardware-accelerated video decoding
-- **Real IPTV data**: Fetches channels from iptv-org with search/filters
-
-## Controls & Shortcuts 🔧
-
-- UI: A **Fullscreen** button has been added to the main controls (to the right of the speaker/mute button).
-- Keyboard shortcuts:
-  - `Space` — Play / Pause
-  - `F` — Toggle Fullscreen
-  - `Esc` — Exit Fullscreen
-  - `S` — Stop
-  - `A` — Audio Track dialog
-  - `M` — Mute
-  - `R` — Retry
-  - `↑/↓` — Volume up / down
-
-Tip: The shortcuts will not trigger while typing in any search or filter input fields to avoid accidental actions.
-
