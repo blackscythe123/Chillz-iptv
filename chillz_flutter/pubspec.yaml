@@ -1,0 +1,26 @@
+name: chillz_flutter
+description: A minimal Flutter Windows desktop IPTV player using libVLC
+publish_to: 'none'
+version: 0.1.0
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Modern cross-platform media player using libmpv/libvlc
+  media_kit: ^1.1.10+1
+  media_kit_video: ^1.2.4
+  media_kit_libs_windows_video: ^1.0.9
+  provider: ^6.1.5+1
+  http: ^0.13.6
+  path_provider: ^2.0.13
+  json_annotation: ^4.8.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
