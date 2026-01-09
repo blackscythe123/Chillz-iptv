@@ -1,6 +1,6 @@
 # chillz_flutter
 
-Flutter Windows desktop IPTV player using **media_kit** for reliable video playback.
+Flutter Windows desktop IPTV player using **libvlc** for reliable video playback.
 
 ## Quick Start
 
@@ -16,15 +16,23 @@ flutter run -d windows
 
 ## How It Works
 
-- **Self-contained**: Uses **media_kit** which bundles all required video libraries automatically
+- **Self-contained**: Uses **libvlc** which bundles all required video libraries automatically
 - **No external dependencies**: Everything needed for video playback is included
 - **Hardware acceleration**: Supports hardware-accelerated video decoding
 - **Real IPTV data**: Fetches channels from iptv-org with search/filters
 
-## Dependencies
+## Controls & Shortcuts 🔧
 
-The app uses:
-- `media_kit` - Modern video player for Flutter
-- `media_kit_video` - Video widget
-- `media_kit_libs_windows_video` - Bundled native libraries for Windows
+- UI: A **Fullscreen** button has been added to the main controls (to the right of the speaker/mute button).
+- Keyboard shortcuts:
+  - `Space` — Play / Pause
+  - `F` — Toggle Fullscreen
+  - `Esc` — Exit Fullscreen
+  - `S` — Stop
+  - `A` — Audio Track dialog
+  - `M` — Mute
+  - `R` — Retry
+  - `↑/↓` — Volume up / down
+
+Tip: The shortcuts will not trigger while typing in any search or filter input fields to avoid accidental actions.
 

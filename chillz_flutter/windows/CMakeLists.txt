@@ -87,6 +87,18 @@ if(PLUGIN_BUNDLED_LIBRARIES)
     COMPONENT Runtime)
 endif()
 
+# === libVLC Bundle ===
+# Copy libVLC DLLs and plugins folder from libvlc_bundle to output directory
+set(LIBVLC_BUNDLE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../libvlc_bundle")
+if(EXISTS "${LIBVLC_BUNDLE_DIR}/libvlc.dll")
+  install(FILES "${LIBVLC_BUNDLE_DIR}/libvlc.dll" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
+  install(FILES "${LIBVLC_BUNDLE_DIR}/libvlccore.dll" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
+  install(DIRECTORY "${LIBVLC_BUNDLE_DIR}/plugins" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
+  message(STATUS "libVLC bundle found at ${LIBVLC_BUNDLE_DIR}")
+else()
+  message(WARNING "libVLC bundle not found at ${LIBVLC_BUNDLE_DIR} - VLC playback will not work!")
+endif()
+
 # Copy the native assets provided by the build.dart from all packages.
 set(NATIVE_ASSETS_DIR "${PROJECT_BUILD_DIR}native_assets/windows/")
 install(DIRECTORY "${NATIVE_ASSETS_DIR}"

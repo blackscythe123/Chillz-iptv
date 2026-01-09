@@ -8,10 +8,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # Modern cross-platform media player using libmpv/libvlc
-  media_kit: ^1.1.10+1
-  media_kit_video: ^1.2.4
-  media_kit_libs_windows_video: ^1.0.9
+  # Direct libVLC integration via platform channels - no media_kit
   provider: ^6.1.5+1
   http: ^0.13.6
   path_provider: ^2.0.13

@@ -1,11 +1,137 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
 import '../models/iptv_models.dart';
+
+/// Data transfer object for compute isolate
+class _ProcessingData {
+  final String channelsJson;
+  final String streamsJson;
+  final String logosJson;
+  final String categoriesJson;
+  final String countriesJson;
+  final String languagesJson;
+
+  _ProcessingData({
+    required this.channelsJson,
+    required this.streamsJson,
+    required this.logosJson,
+    required this.categoriesJson,
+    required this.countriesJson,
+    required this.languagesJson,
+  });
+}
+
+/// Process channel data in a background isolate to prevent UI blocking
+List<Channel> _processChannelsInIsolate(_ProcessingData data) {
+  // Parse JSON
+  final chRaw = jsonDecode(data.channelsJson) as List<dynamic>;
+  final stRaw = jsonDecode(data.streamsJson) as List<dynamic>;
+  final lgRaw = jsonDecode(data.logosJson) as List<dynamic>;
+  final catRaw = jsonDecode(data.categoriesJson) as List<dynamic>;
+  final coRaw = jsonDecode(data.countriesJson) as List<dynamic>;
+  final langRaw = jsonDecode(data.languagesJson) as List<dynamic>;
+
+  // Parse into typed objects
+  final channelsList = chRaw
+      .map((c) => IPTVChannelRaw.fromJson(c as Map<String, dynamic>))
+      .toList();
+  final streamsList = stRaw
+      .map((s) => IPTVStreamRaw.fromJson(s as Map<String, dynamic>))
+      .toList();
+  final logosList = lgRaw
+      .map((l) => IPTVLogoRaw.fromJson(l as Map<String, dynamic>))
+      .toList();
+  final categoriesList = catRaw
+      .map((c) => IPTVCategoryRaw.fromJson(c as Map<String, dynamic>))
+      .toList();
+  final countriesList = coRaw
+      .map((c) => IPTVCountryRaw.fromJson(c as Map<String, dynamic>))
+      .toList();
+  final languagesList = langRaw
+      .map((l) => IPTVLanguageRaw.fromJson(l as Map<String, dynamic>))
+      .toList();
+
+  // Build lookup maps
+  final logoMap = <String, String>{};
+  for (final logo in logosList) {
+    if (!logoMap.containsKey(logo.channel) || logo.feed == null) {
+      logoMap[logo.channel] = logo.url;
+    }
+  }
+
+  final categoryMap = <String, String>{};
+  for (final c in categoriesList) {
+    categoryMap[c.id] = c.name;
+  }
+
+  final countryMap = <String, Map<String, dynamic>>{};
+  for (final co in countriesList) {
+    countryMap[co.code] = {
+      'name': co.name,
+      'flag': co.flag,
+      'languages': List<String>.from(co.languages.map((e) => e.toString()))
+    };
+  }
+
+  final languageMap = <String, String>{};
+  for (final l in languagesList) {
+    languageMap[l.code] = l.name;
+  }
+
+  final streamMap = <String, IPTVStreamRaw>{};
+  for (final s in streamsList) {
+    if (s.channel != null && s.url.isNotEmpty) {
+      if (!streamMap.containsKey(s.channel!)) streamMap[s.channel!] = s;
+    }
+  }
+
+  // Merge and create Channel objects
+  final List<Channel> merged = [];
+  for (final ch in channelsList) {
+    if (ch.isNsfw || (ch.closed != null && ch.closed!.isNotEmpty)) continue;
+    final s = streamMap[ch.id];
+    if (s == null) continue;
+
+    final countryInfo = countryMap[ch.country] ??
+        {'name': ch.country, 'flag': '🌐', 'languages': <String>[]};
+    final primaryCategory =
+        (ch.categories.isNotEmpty ? ch.categories[0].toString() : 'general');
+    final channelLangs =
+        List<String>.from(countryInfo['languages'] as List<dynamic>);
+    final channelLangNames =
+        channelLangs.map((c) => languageMap[c] ?? c).toList();
+
+    merged.add(Channel(
+      id: ch.id,
+      name: ch.name,
+      country: ch.country,
+      countryName: countryInfo['name'] as String,
+      countryFlag: countryInfo['flag'] as String,
+      category: primaryCategory,
+      categoryName: categoryMap[primaryCategory] ?? primaryCategory,
+      categories: ch.categories,
+      logo: logoMap[ch.id] ?? '',
+      url: s.url,
+      quality: s.quality,
+      languages: channelLangs,
+      languageNames: channelLangNames,
+      isNsfw: ch.isNsfw,
+      network: ch.network,
+      website: ch.website,
+      referrer: s.referrer,
+      userAgent: s.userAgent,
+    ));
+  }
+
+  merged.sort((a, b) => a.name.compareTo(b.name));
+  return merged;
+}
 
 class IptvService extends ChangeNotifier {
   List<Channel> _channels = [];
@@ -122,116 +248,29 @@ class IptvService extends ChangeNotifier {
         // data cached to files; will read from files below for merging
       }
 
-      _progress = 'Processing data...';
+      _progress = 'Processing data (background)...';
       notifyListeners();
 
-      // Parse lists
-      List<IPTVChannelRaw> channelsList = [];
-      List<IPTVStreamRaw> streamsList = [];
-      List<IPTVLogoRaw> logosList = [];
-      List<IPTVCategoryRaw> categoriesList = [];
-      List<IPTVCountryRaw> countriesList = [];
-      List<IPTVLanguageRaw> languagesList = [];
+      // Read raw JSON strings - these will be passed to isolate
+      final channelsJson = await channelFile.readAsString();
+      final streamsJson = await streamsFile.readAsString();
+      final logosJson = await logosFile.readAsString();
+      final categoriesJson = await categoriesFile.readAsString();
+      final countriesJson = await countriesFile.readAsString();
+      final languagesJson = await languagesFile.readAsString();
 
-      // Depending on whether we used cache we might have individual lists or map container
-      dynamic chRaw = jsonDecode(await channelFile.readAsString());
-      dynamic stRaw = jsonDecode(await streamsFile.readAsString());
-      dynamic lgRaw = jsonDecode(await logosFile.readAsString());
-      dynamic catRaw = jsonDecode(await categoriesFile.readAsString());
-      dynamic coRaw = jsonDecode(await countriesFile.readAsString());
-      dynamic langRaw = jsonDecode(await languagesFile.readAsString());
+      // CRITICAL: Use compute isolate to prevent UI blocking
+      // Processing 8000+ channels on main thread causes "Not Responding"
+      final processingData = _ProcessingData(
+        channelsJson: channelsJson,
+        streamsJson: streamsJson,
+        logosJson: logosJson,
+        categoriesJson: categoriesJson,
+        countriesJson: countriesJson,
+        languagesJson: languagesJson,
+      );
 
-      for (final c in chRaw as List<dynamic>) {
-        channelsList.add(IPTVChannelRaw.fromJson(c as Map<String, dynamic>));
-      }
-      for (final s in stRaw as List<dynamic>) {
-        streamsList.add(IPTVStreamRaw.fromJson(s as Map<String, dynamic>));
-      }
-      for (final l in lgRaw as List<dynamic>) {
-        logosList.add(IPTVLogoRaw.fromJson(l as Map<String, dynamic>));
-      }
-      for (final c in catRaw as List<dynamic>) {
-        categoriesList.add(IPTVCategoryRaw.fromJson(c as Map<String, dynamic>));
-      }
-      for (final c in coRaw as List<dynamic>) {
-        countriesList.add(IPTVCountryRaw.fromJson(c as Map<String, dynamic>));
-      }
-      for (final l in langRaw as List<dynamic>) {
-        languagesList.add(IPTVLanguageRaw.fromJson(l as Map<String, dynamic>));
-      }
-
-      // Merging logic (same as React implementation)
-      final logoMap = <String, String>{};
-      for (final logo in logosList) {
-        if (!logoMap.containsKey(logo.channel) || logo.feed == null) {
-          logoMap[logo.channel] = logo.url;
-        }
-      }
-
-      final categoryMap = <String, String>{};
-      for (final c in categoriesList) {
-        categoryMap[c.id] = c.name;
-      }
-
-      final countryMap = <String, Map<String, dynamic>>{};
-      for (final co in countriesList) {
-        countryMap[co.code] = {
-          'name': co.name,
-          'flag': co.flag,
-          'languages': List<String>.from(co.languages.map((e) => e.toString()))
-        };
-      }
-
-      final languageMap = <String, String>{};
-      for (final l in languagesList) {
-        languageMap[l.code] = l.name;
-      }
-
-      final streamMap = <String, IPTVStreamRaw>{};
-      for (final s in streamsList) {
-        if (s.channel != null && s.url.isNotEmpty) {
-          if (!streamMap.containsKey(s.channel!)) streamMap[s.channel!] = s;
-        }
-      }
-
-      final List<Channel> merged = [];
-      for (final ch in channelsList) {
-        if (ch.isNsfw || (ch.closed != null && ch.closed!.isNotEmpty)) continue;
-        final s = streamMap[ch.id];
-        if (s == null) continue;
-        final countryInfo = countryMap[ch.country] ??
-            {'name': ch.country, 'flag': '🌐', 'languages': <String>[]};
-        final primaryCategory = (ch.categories.isNotEmpty
-            ? ch.categories[0].toString()
-            : 'general');
-        final channelLangs =
-            List<String>.from(countryInfo['languages'] as List<dynamic>);
-        final channelLangNames =
-            channelLangs.map((c) => languageMap[c] ?? c).toList();
-
-        merged.add(Channel(
-          id: ch.id,
-          name: ch.name,
-          country: ch.country,
-          countryName: countryInfo['name'] as String,
-          countryFlag: countryInfo['flag'] as String,
-          category: primaryCategory,
-          categoryName: categoryMap[primaryCategory] ?? primaryCategory,
-          categories: ch.categories,
-          logo: logoMap[ch.id] ?? '',
-          url: s.url,
-          quality: s.quality,
-          languages: channelLangs,
-          languageNames: channelLangNames,
-          isNsfw: ch.isNsfw,
-          network: ch.network,
-          website: ch.website,
-          referrer: s.referrer,
-          userAgent: s.userAgent,
-        ));
-      }
-
-      merged.sort((a, b) => a.name.compareTo(b.name));
+      final merged = await compute(_processChannelsInIsolate, processingData);
 
       _channels = merged;
       _progress = 'Loaded ${_channels.length} channels';

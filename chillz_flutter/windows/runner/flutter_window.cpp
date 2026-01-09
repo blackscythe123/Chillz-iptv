@@ -3,6 +3,8 @@
 #include <optional>
 
 #include "flutter/generated_plugin_registrant.h"
+#include <flutter/plugin_registrar.h>
+#include "vlc_player_plugin.h"
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
@@ -25,6 +27,14 @@ bool FlutterWindow::OnCreate() {
     return false;
   }
   RegisterPlugins(flutter_controller_->engine());
+  
+  // Register VLC player plugin with native registrar using C++ registrar wrapper
+  {
+    auto* core_registrar = flutter_controller_->engine()->GetRegistrarForPlugin("VlcPlayerPlugin");
+    auto* registrar = flutter::PluginRegistrarManager::GetInstance()->GetRegistrar<flutter::PluginRegistrarWindows>(core_registrar);
+    vlc_player::VlcPlayerPlugin::RegisterWithRegistrar(registrar);
+  }
+  
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {
@@ -64,6 +74,10 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
   switch (message) {
     case WM_FONTCHANGE:
       flutter_controller_->engine()->ReloadSystemFonts();
+      break;
+    case WM_APP + 0x100:
+      // Dispatch any pending VLC events on the platform thread
+      vlc_player::VlcPlayerPlugin::DispatchPendingEvents();
       break;
   }
 
