@@ -1,49 +1,43 @@
-# Chillz (Flutter Windows • libVLC)
+# Chillz: Cross-Platform IPTV Solution 📺
 
-**Chillz** is a **Windows desktop IPTV player** built with **Flutter** and **direct libVLC integration**, designed for **stable HLS playback**, **VLC-grade reliability**, and a **custom Flutter UI**.
+**Chillz** is a modern, high-performance IPTV streaming project designed to provide a premium TV experience across both **Windows Desktop** and **Web Browsers**.
 
-This project embeds **libVLC natively** (child HWND) instead of relying on fragile media wrappers, ensuring better compatibility with real-world IPTV streams.
-
----
-
-## Key Features
-
-- 🎬 **Direct libVLC integration**
-  - No external VLC installation required
-  - Uses bundled libVLC binaries
-  - Same playback core as VLC Desktop
-
-- 🖥️ **True Windows desktop player**
-  - Video rendered inside Flutter layout (no extra VLC window)
-  - Fullscreen & windowed modes fully controlled by Flutter
-  - Keyboard-first UX like VLC
-
-- 📡 **Real IPTV support**
-  - HLS (`.m3u8`) live streams
-  - Handles unstable and imperfect IPTV sources
-  - Graceful handling of broken metadata, logos, and DNS failures
-
-- 🔊 **Advanced audio controls**
-  - Multiple audio track selection
-  - VLC-style volume amplification up to **200%**
-  - No “ghost audio” when switching channels
-
-- ⚡ **Performance-focused**
-  - Hardware-accelerated decoding
-  - Native video rendering
-  - Minimal UI overhead
+It solves the common problem of unreliable free streams by using different robust playback technologies tailored for each platform.
 
 ---
 
-## Quick Start
+## 📂 Project Structure
 
-### Requirements
-- Windows 10 / 11 (64-bit)
-- Flutter (stable channel)
-- Visual Studio Build Tools (Desktop development with C++)
+This repository contains two distinct applications:
 
-### Run the app
+### 1. [Chillz Desktop](./chillz_desktop/) (Native Windows)
+-   **Technology**: Flutter + C++ (Direct libVLC Integration).
+-   **What it is**: A native Windows application that embeds the VLC media engine directly into the window.
+-   **Why use it**: Best for stability and compatibility. typical web browsers block many IPTV streams (CORS, mixed content, codecs), but the Desktop app plays **everything** that VLC plays.
+-   **Key Tech**: Custom C++ plugin for HWND management, low-level event loop bridging.
 
-```bash
-flutter pub get
-flutter run -d windows
+### 2. [Chillz Browser](./chillz_browser/) (Web Client)
+-   **Technology**: React 19 + TypeScript + Vite 7.
+-   **What it is**: A lightweight, instant-access web player using HLS.js.
+-   **Why use it**: Accessibility. No install required, runs on any device (Mobile, Tablet, Laptop) instantly.
+-   **Key Tech**: Virtualized channel lists (8,000+ items), client-side stream diagnosis.
+
+---
+
+## 🎯 Shared Goals
+
+Both projects share the same design philosophy:
+
+-   **Premium UI**: Glassmorphism, smooth animations, and zero clutter.
+-   **Massive Content**: Integration with publicly available IPTV-ORG playlists (8,000+ channels).
+-   **User Control**: Advanced filtering (Country, Language, Category) and instant search.
+-   **Diagnostics**: Tools to help users understand *why* a stream might fail (Geo-blocking, 404s, etc.).
+
+---
+
+## 🚀 Getting Started
+
+To run the specific applications, navigate to their respective directories and follow the README instructions therein:
+
+-   **Desktop**: `cd chillz_desktop`
+-   **Web**: `cd chillz_browser`
