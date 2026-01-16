@@ -11,8 +11,10 @@
 
 namespace vlc_player {
 
-// Static plugin instance
+// Static plugin instance with thread-safe access
 static std::unique_ptr<VlcPlayerPlugin> g_plugin;
+static std::mutex g_plugin_mutex;
+static std::once_flag g_plugin_init_flag;
 
 // Pending events queue (static storage definitions)
 std::mutex VlcPlayerPlugin::pending_events_mutex_;
@@ -20,9 +22,11 @@ std::vector<std::pair<std::string, flutter::EncodableMap>> VlcPlayerPlugin::pend
 
 // Static registration (C API)
 void VlcPlayerPlugin::RegisterWithRegistrar(FlutterDesktopPluginRegistrarRef registrar) {
-    FlutterDesktopMessengerRef messenger = FlutterDesktopPluginRegistrarGetMessenger(registrar);
-    g_plugin = std::make_unique<VlcPlayerPlugin>(messenger);
-    OutputDebugStringA("[VlcPlayerPlugin] Plugin registered (C API)\n");
+    std::call_once(g_plugin_init_flag, [registrar]() {
+        FlutterDesktopMessengerRef messenger = FlutterDesktopPluginRegistrarGetMessenger(registrar);
+        g_plugin = std::make_unique<VlcPlayerPlugin>(messenger);
+        OutputDebugStringA("[VlcPlayerPlugin] Plugin registered (C API)\n");
+    });
 }
 
 // Static registration (C++ registrar) - preferred
@@ -1136,7 +1140,8 @@ void VlcPlayerPlugin::SendEvent(const std::string& event_name, const flutter::En
 
 void VlcPlayerPlugin::DispatchPendingEvents() {
     // Use the global plugin instance to access instance members from the
-    // platform thread.
+    // platform thread with thread-safe access.
+    std::lock_guard<std::mutex> plugin_lock(g_plugin_mutex);
     if (!g_plugin) return;
 
     std::vector<std::pair<std::string, flutter::EncodableMap>> events;
