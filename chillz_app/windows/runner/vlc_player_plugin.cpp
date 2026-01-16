@@ -24,7 +24,6 @@ std::vector<std::pair<std::string, flutter::EncodableMap>> VlcPlayerPlugin::pend
 void VlcPlayerPlugin::RegisterWithRegistrar(FlutterDesktopPluginRegistrarRef registrar) {
     std::call_once(g_plugin_init_flag, [registrar]() {
         FlutterDesktopMessengerRef messenger = FlutterDesktopPluginRegistrarGetMessenger(registrar);
-        std::lock_guard<std::mutex> lock(g_plugin_mutex);
         g_plugin = std::make_unique<VlcPlayerPlugin>(messenger);
         OutputDebugStringA("[VlcPlayerPlugin] Plugin registered (C API)\n");
     });
