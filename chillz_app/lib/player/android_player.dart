@@ -1,9 +1,8 @@
-// Android MPV Player - media_kit implementation
+// Android MPV Player - media_kit implementation with IPTV-optimized buffering
 // Implements PlayerEngine interface for Android platform
 // Supports ARM64, x86_64, and Android TV
 
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:media_kit/media_kit.dart' as mk;
 import 'package:media_kit_video/media_kit_video.dart';
@@ -11,6 +10,7 @@ import 'package:media_kit_video/media_kit_video.dart';
 import 'player_engine.dart' as engine;
 
 /// Android-specific player using media_kit (MPV backend)
+/// Optimized for IPTV streaming with aggressive buffering
 class AndroidMpvPlayer extends engine.PlayerEngine {
   late final mk.Player _player;
   late final VideoController _videoController;
@@ -37,17 +37,70 @@ class AndroidMpvPlayer extends engine.PlayerEngine {
   // Subscriptions
   final List<StreamSubscription> _subscriptions = [];
 
-  // Reconnection logic
+  // Reconnection logic with delay
   int _reconnectAttempts = 0;
-  static const int _maxReconnectAttempts = 3;
+  static const int _maxReconnectAttempts = 5;
+  static const Duration _reconnectBaseDelay = Duration(seconds: 3);
   Timer? _reconnectTimer;
 
+  // Buffering state tracking
+  bool _isBuffering = false;
+  DateTime? _bufferingStartTime;
+  static const Duration _bufferingErrorThreshold = Duration(seconds: 30);
+  Timer? _bufferingWatchdog;
+
+  // IPTV-optimized MPV configuration
+  // These options are passed when opening media
+  static const Map<String, String> _iptvMpvOptions = {
+    // === CACHING & BUFFERING ===
+    'cache': 'yes',
+    'cache-secs': '30',
+    'demuxer-max-bytes': '67108864', // 64MB
+    'demuxer-max-back-bytes': '33554432', // 32MB
+    'demuxer-readahead-secs': '20',
+
+    // === NETWORK RESILIENCE ===
+    'rtsp-transport': 'tcp',
+    'stream-lavf-o': 'reconnect=1,reconnect_streamed=1,reconnect_delay_max=5',
+    'network-timeout': '30',
+
+    // === HARDWARE DECODING (Android) ===
+    'hwdec': 'mediacodec-copy',
+    'vo': 'gpu',
+    'ao': 'audiotrack',
+
+    // === PERFORMANCE TUNING ===
+    'framedrop': 'decoder+vo',
+    'vd-lavc-threads': '2',
+    'loop-file': 'no',
+    'audio-buffer': '0.5',
+
+    // === HLS/IPTV SPECIFIC ===
+    'hls-bitrate': 'max',
+    'deinterlace': 'auto',
+  };
+
   AndroidMpvPlayer() {
+    // Create player with IPTV-optimized configuration
     _player = mk.Player(
-      configuration: const mk.PlayerConfiguration(
-        // Enable buffering for IPTV streams
-        bufferSize: 32 * 1024 * 1024, // 32MB buffer
+      configuration: mk.PlayerConfiguration(
+        // Large buffer for IPTV stability (64MB)
+        bufferSize: 64 * 1024 * 1024,
         logLevel: mk.MPVLogLevel.warn,
+        // Disable OSC (on-screen controller)
+        osc: false,
+        // Lower priority for background playback
+        pitch: false,
+        // Apply IPTV-optimized MPV options
+        libass: false,
+        protocolWhitelist: const [
+          'http',
+          'https',
+          'rtsp',
+          'rtmp',
+          'hls',
+          'file'
+        ],
       ),
     );
 
@@ -104,7 +157,7 @@ class AndroidMpvPlayer extends engine.PlayerEngine {
     if (_initialized) return true;
 
     try {
-      debugPrint('[AndroidMPV] Initializing media_kit player');
+      debugPrint('[AndroidMPV] Initializing media_kit player with IPTV config');
 
       // Subscribe to player streams
       _subscriptions.add(
@@ -113,6 +166,7 @@ class AndroidMpvPlayer extends engine.PlayerEngine {
           if (playing) {
             _updateState(engine.PlayerState.playing);
             _reconnectAttempts = 0; // Reset on successful play
+            _cancelBufferingWatchdog();
           }
           notifyListeners();
         }),
@@ -120,11 +174,7 @@ class AndroidMpvPlayer extends engine.PlayerEngine {
 
       _subscriptions.add(
         _player.stream.buffering.listen((buffering) {
-          if (buffering) {
-            _updateState(engine.PlayerState.buffering);
-          } else if (_isPlaying) {
-            _updateState(engine.PlayerState.playing);
-          }
+          _handleBufferingState(buffering);
         }),
       );
 
@@ -132,6 +182,8 @@ class AndroidMpvPlayer extends engine.PlayerEngine {
         _player.stream.completed.listen((completed) {
           if (completed) {
             _updateState(engine.PlayerState.ended);
+            // For IPTV, completed might mean stream ended - try reconnect
+            _scheduleReconnect(isStreamEnd: true);
           }
         }),
       );
@@ -177,7 +229,7 @@ class AndroidMpvPlayer extends engine.PlayerEngine {
       );
 
       _initialized = true;
-      debugPrint('[AndroidMPV] Initialized successfully');
+      debugPrint('[AndroidMPV] ✓ Initialized successfully with IPTV buffering');
       notifyListeners();
       return true;
     } catch (e) {
@@ -195,33 +247,104 @@ class AndroidMpvPlayer extends engine.PlayerEngine {
     }
   }
 
+  /// Handle buffering state changes intelligently
+  /// Distinguishes between normal buffering and real errors
+  void _handleBufferingState(bool buffering) {
+    _isBuffering = buffering;
+
+    if (buffering) {
+      // Started buffering
+      _bufferingStartTime ??= DateTime.now();
+      _updateState(engine.PlayerState.buffering);
+
+      // Start watchdog to detect stuck buffering
+      _startBufferingWatchdog();
+
+      debugPrint('[AndroidMPV] Buffering started...');
+    } else {
+      // Stopped buffering
+      if (_bufferingStartTime != null) {
+        final duration = DateTime.now().difference(_bufferingStartTime!);
+        debugPrint(
+            '[AndroidMPV] Buffering completed in ${duration.inSeconds}s');
+      }
+      _bufferingStartTime = null;
+      _cancelBufferingWatchdog();
+
+      if (_isPlaying) {
+        _updateState(engine.PlayerState.playing);
+      }
+    }
+  }
+
+  /// Start a watchdog timer to detect stuck buffering
+  void _startBufferingWatchdog() {
+    _cancelBufferingWatchdog();
+
+    _bufferingWatchdog = Timer(_bufferingErrorThreshold, () {
+      if (_isBuffering && _bufferingStartTime != null) {
+        final duration = DateTime.now().difference(_bufferingStartTime!);
+        debugPrint(
+            '[AndroidMPV] Buffering stuck for ${duration.inSeconds}s - attempting reconnect');
+
+        // Only reconnect if buffering for too long - not a real error
+        _scheduleReconnect(isBufferingTimeout: true);
+      }
+    });
+  }
+
+  void _cancelBufferingWatchdog() {
+    _bufferingWatchdog?.cancel();
+    _bufferingWatchdog = null;
+  }
+
   void _handleError(String error) {
-    debugPrint('[AndroidMPV] Error: $error');
+    debugPrint('[AndroidMPV] Error received: $error');
     _lastError = error;
 
     final playerError = _parseError(error);
     _errorController.add(playerError);
 
-    // Attempt reconnection for recoverable errors
-    if (playerError.isRecoverable &&
-        _reconnectAttempts < _maxReconnectAttempts) {
-      _scheduleReconnect();
+    // Don't restart on non-recoverable errors
+    if (!playerError.isRecoverable) {
+      debugPrint('[AndroidMPV] Non-recoverable error - stopping');
+      _updateState(engine.PlayerState.error);
+      return;
+    }
+
+    // Attempt reconnection for recoverable errors with delay
+    if (_reconnectAttempts < _maxReconnectAttempts) {
+      _scheduleReconnect(isError: true);
     } else {
+      debugPrint('[AndroidMPV] Max reconnect attempts reached');
       _updateState(engine.PlayerState.error);
     }
 
     notifyListeners();
   }
 
-  void _scheduleReconnect() {
+  /// Schedule a reconnection with exponential backoff
+  /// Delay is 3-5 seconds instead of instant reopen
+  void _scheduleReconnect({
+    bool isError = false,
+    bool isStreamEnd = false,
+    bool isBufferingTimeout = false,
+  }) {
     if (_currentUrl == null) return;
 
     _reconnectTimer?.cancel();
     _reconnectAttempts++;
 
-    final delay = Duration(seconds: _reconnectAttempts * 2);
+    // Calculate delay: 3-5 seconds base + exponential backoff
+    final baseDelay = _reconnectBaseDelay.inSeconds;
+    final backoffDelay = (baseDelay * _reconnectAttempts).clamp(3, 15);
+    final delay = Duration(seconds: backoffDelay);
+
+    final reason =
+        isError ? 'error' : (isStreamEnd ? 'stream end' : 'buffering timeout');
     debugPrint(
-        '[AndroidMPV] Scheduling reconnect attempt $_reconnectAttempts in ${delay.inSeconds}s');
+        '[AndroidMPV] Scheduling reconnect attempt $_reconnectAttempts/$_maxReconnectAttempts '
+        'in ${delay.inSeconds}s (reason: $reason)');
 
     _reconnectTimer = Timer(delay, () async {
       if (_currentUrl != null) {
@@ -319,6 +442,7 @@ class AndroidMpvPlayer extends engine.PlayerEngine {
     debugPrint('[AndroidMPV] Disposing');
 
     _reconnectTimer?.cancel();
+    _bufferingWatchdog?.cancel();
 
     for (final sub in _subscriptions) {
       await sub.cancel();
@@ -348,7 +472,18 @@ class AndroidMpvPlayer extends engine.PlayerEngine {
       _lastError = null;
       _updateState(engine.PlayerState.loading);
 
-      await _player.open(mk.Media(url));
+      // Reset buffering state
+      _bufferingStartTime = null;
+      _isBuffering = false;
+
+      // Create media with IPTV-optimized extras
+      // The extras map is passed to MPV as command-line options
+      final media = mk.Media(
+        url,
+        extras: _iptvMpvOptions,
+      );
+
+      await _player.open(media);
 
       // Apply current volume
       await _player.setVolume(_volume.toDouble());
@@ -366,7 +501,10 @@ class AndroidMpvPlayer extends engine.PlayerEngine {
   Future<void> stop() async {
     debugPrint('[AndroidMPV] Stopping');
     _reconnectTimer?.cancel();
+    _bufferingWatchdog?.cancel();
     _reconnectAttempts = 0;
+    _bufferingStartTime = null;
+    _isBuffering = false;
 
     await _player.stop();
     _currentUrl = null;

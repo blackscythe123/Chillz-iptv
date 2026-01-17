@@ -11,9 +11,12 @@ import 'package:media_kit/media_kit.dart' hide PlayerState;
 
 import 'models/iptv_models.dart';
 import 'services/iptv_service.dart';
+import 'services/channel_filter_service.dart';
+import 'services/platform_layout.dart';
 import 'player/player_factory.dart';
 import 'player/player_engine.dart';
 import 'player/android_tv_utils.dart';
+import 'player/virtual_mouse.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,21 +35,15 @@ void main() async {
     debugPrint('[Chillz] ✓ MediaKit initialized');
   }
 
+  // Initialize platform detection (includes Android TV detection)
+  await PlatformLayout.init();
+  debugPrint('[Chillz] Platform layout: ${PlatformLayout.platform}');
+
   // Detect Android TV
   if (Platform.isAndroid) {
     debugPrint('[Chillz] Detecting Android TV...');
-    await AndroidTVUtils.init();
     PlayerFactory.setAndroidTV(AndroidTVUtils.isTV);
     debugPrint('[Chillz] Android TV mode: ${AndroidTVUtils.isTV}');
-
-    // Force landscape for TV
-    if (AndroidTVUtils.isTV) {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    }
   }
 
   debugPrint('[Chillz] Creating PlayerFactory instance...');
@@ -59,13 +56,14 @@ void main() async {
 class ChillzApp extends StatelessWidget {
   final PlayerEngine player;
 
-  const ChillzApp({Key? key, required this.player}) : super(key: key);
+  const ChillzApp({super.key, required this.player});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => IptvService()..loadChannels()),
+        ChangeNotifierProvider(create: (_) => ChannelFilterService()),
         ChangeNotifierProvider.value(value: player),
       ],
       child: MaterialApp(
@@ -82,7 +80,7 @@ class ChillzApp extends StatelessWidget {
 }
 
 class ChillzHome extends StatefulWidget {
-  const ChillzHome({Key? key}) : super(key: key);
+  const ChillzHome({super.key});
 
   @override
   State<ChillzHome> createState() => _ChillzHomeState();
@@ -90,6 +88,7 @@ class ChillzHome extends StatefulWidget {
 
 class _ChillzHomeState extends State<ChillzHome> with WidgetsBindingObserver {
   late IptvService _iptvService;
+  late ChannelFilterService _filterService;
   late PlayerEngine _player;
   bool _playerReady = false;
 
@@ -97,8 +96,9 @@ class _ChillzHomeState extends State<ChillzHome> with WidgetsBindingObserver {
   String _status = 'idle';
   String _lastError = '';
   double _volume = 100.0;
+  Channel? _currentChannel;
 
-  // Search & Filters
+  // Search & Filters (legacy, to be replaced by ChannelFilterService)
   String _search = '';
   String _selectedCategory = 'all';
   String _selectedCountry = 'all';
@@ -121,8 +121,15 @@ class _ChillzHomeState extends State<ChillzHome> with WidgetsBindingObserver {
   // Fullscreen state
   bool _isFullscreen = false;
 
+  // Mobile navigation state (two-screen mode)
+  bool _showingPlayer =
+      false; // For mobile: true = show player, false = show list
+
   // TV mode
   bool get _isTV => AndroidTVUtils.isTV;
+
+  // Mobile mode
+  bool get _isMobile => PlatformLayout.isMobile;
 
   // Dev mode for debugging
   bool _devMode = true;
@@ -135,12 +142,28 @@ class _ChillzHomeState extends State<ChillzHome> with WidgetsBindingObserver {
   StreamSubscription<PlayerState>? _stateSubscription;
   StreamSubscription<PlayerError>? _errorSubscription;
 
+  // TV number input collector
+  late TVNumberInputCollector _numberInputCollector;
+
+  // Virtual Mouse
+  final VirtualMouseController _mouseController = VirtualMouseController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
+    // Listen to mouse visibility to update UI if needed
+    _mouseController.addListener(() {
+      if (mounted) setState(() {});
+    });
+
     debugPrint('[ChillzHome] initState');
+
+    // Initialize TV number input collector
+    _numberInputCollector = TVNumberInputCollector(
+      onChannelSubmit: _goToChannelByNumber,
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _initializePlayer();
@@ -152,6 +175,7 @@ class _ChillzHomeState extends State<ChillzHome> with WidgetsBindingObserver {
     debugPrint('[ChillzHome] ▶ Initializing player...');
 
     _iptvService = Provider.of<IptvService>(context, listen: false);
+    _filterService = Provider.of<ChannelFilterService>(context, listen: false);
     _player = Provider.of<PlayerEngine>(context, listen: false);
 
     debugPrint('[ChillzHome] Player type: ${_player.runtimeType}');
@@ -161,6 +185,9 @@ class _ChillzHomeState extends State<ChillzHome> with WidgetsBindingObserver {
       debugPrint('[ChillzHome] Loading IPTV channels...');
       _iptvService.loadChannels();
     }
+
+    // Listen to IPTV service and update filter service when channels load
+    _iptvService.addListener(_onChannelsUpdated);
 
     // Subscribe to player state changes
     _stateSubscription = _player.stateStream.listen((state) {
@@ -202,6 +229,13 @@ class _ChillzHomeState extends State<ChillzHome> with WidgetsBindingObserver {
 
     debugPrint('[ChillzHome] Setup complete');
     debugPrint('───────────────────────────────────────────────────────');
+  }
+
+  void _onChannelsUpdated() {
+    if (_iptvService.channels.isNotEmpty) {
+      _filterService.setChannels(_iptvService.channels);
+      setState(() => _filterDirty = true);
+    }
   }
 
   void _onPlayerStateChanged(PlayerState state) {
@@ -311,21 +345,46 @@ class _ChillzHomeState extends State<ChillzHome> with WidgetsBindingObserver {
   void dispose() {
     debugPrint('[ChillzHome] dispose');
     WidgetsBinding.instance.removeObserver(this);
+    _iptvService.removeListener(_onChannelsUpdated);
     _stateSubscription?.cancel();
     _errorSubscription?.cancel();
     _searchTimer?.cancel();
     _appFocusNode.dispose();
     _searchFocusNode.dispose();
+    _searchFocusNode.dispose();
+    _mouseController.dispose();
     super.dispose();
   }
 
-  Future<void> _startPlayback(String url) async {
+  // Go to channel by number (TV remote input)
+  void _goToChannelByNumber(int number) {
+    final channel = _filterService.getChannelByNumber(number);
+    if (channel != null) {
+      debugPrint('[ChillzHome] Going to channel #$number: ${channel.name}');
+      _startPlayback(channel.url, channel: channel);
+    } else {
+      debugPrint('[ChillzHome] Channel #$number not found');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Channel #$number not found'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Future<void> _startPlayback(String url, {Channel? channel}) async {
     debugPrint('[ChillzHome] Starting playback: $url');
 
     setState(() {
       _status = 'loading';
       _currentUrl = url;
+      _currentChannel = channel;
       _lastError = '';
+      // On mobile, switch to player view
+      if (_isMobile) {
+        _showingPlayer = true;
+      }
     });
 
     final success = await _player.play(url);
@@ -358,7 +417,14 @@ class _ChillzHomeState extends State<ChillzHome> with WidgetsBindingObserver {
 
   Future<void> _stop() async {
     await _player.stop();
-    setState(() => _status = 'stopped');
+    setState(() {
+      _status = 'stopped';
+      _currentChannel = null;
+      // On mobile, go back to channel list
+      if (_isMobile) {
+        _showingPlayer = false;
+      }
+    });
   }
 
   Future<void> _setVolume(double v) async {
@@ -453,6 +519,9 @@ class _ChillzHomeState extends State<ChillzHome> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final iptv = Provider.of<IptvService>(context);
 
+    // Update platform detection based on context
+    PlatformLayout.updateFromContext(context);
+
     if (_filterDirty || _filteredChannels.isEmpty) {
       _updateFilters();
     }
@@ -461,49 +530,583 @@ class _ChillzHomeState extends State<ChillzHome> with WidgetsBindingObserver {
       return _buildFullscreenMode();
     }
 
-    return RawKeyboardListener(
-      focusNode: _appFocusNode,
-      autofocus: true,
-      onKey: (RawKeyEvent event) {
-        if (event is RawKeyDownEvent && !_isTextFieldFocused) {
-          _handleKeyEvent(KeyDownEvent(
-            physicalKey: event.physicalKey,
-            logicalKey: event.logicalKey,
-            character: event.character,
-            timeStamp: Duration.zero,
-          ));
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Row(
-            children: [
-              const Icon(Icons.tv, color: Colors.orange),
-              const SizedBox(width: 8),
-              Text(_isTV ? 'Chillz TV' : 'Chillz'),
-              if (_isTV) ...[
-                const SizedBox(width: 12),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.purple.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text('TV MODE',
-                      style: TextStyle(fontSize: 10, color: Colors.purple)),
-                ),
-              ],
-            ],
-          ),
-          backgroundColor: const Color(0xFF1a2332),
+    // Mobile: two-screen navigation (list or player)
+    if (_isMobile && _showingPlayer) {
+      return _buildMobilePlayerScreen();
+    }
+
+    return VirtualMouseOverlay(
+      controller: _mouseController,
+      child: TVRemoteHandler(
+        onBack: _handleBack,
+        onPlayPause: () {
+          if (_mouseController.isVisible)
+            return; // Let click handle it if mouse is active? Or allow both?
+          _playPause();
+        },
+        onStop: _stop,
+        onVolumeUp: () => _setVolume(_volume + 10),
+        onVolumeDown: () => _setVolume(_volume - 10),
+        onMute: _toggleMute,
+
+        // Channel / Mouse Navigation
+        onUp: () => _handleDirection(TVRemoteAction.up),
+        onDown: () => _handleDirection(TVRemoteAction.down),
+        onLeft: () => _handleDirection(TVRemoteAction.left),
+        onRight: () => _handleDirection(TVRemoteAction.right),
+
+        // Select / Mouse Click
+        onSelect: () {
+          if (_mouseController.isVisible) {
+            _mouseController.click();
+          } else {
+            _playPause();
+          }
+        },
+
+        // Shortcuts & Toggle
+        onMenu: _toggleMouseMode,
+        onInfo: _toggleMouseMode, // Fallback if no Menu button
+
+        onChannelUp: _nextChannel,
+        onChannelDown: _prevChannel,
+
+        onNumberKey: (num) {
+          // Special Shortcuts
+          if (num == 1) {
+            _focusSearch();
+          } else if (num == 2) {
+            _playPause();
+          } else if (num == 3) {
+            _toggleFullscreen();
+          } else {
+            // Standard channel input
+            _numberInputCollector.addDigit(num);
+          }
+        },
+        child: Scaffold(
+          appBar: _buildAppBar(),
+          body: _buildBody(iptv),
         ),
-        body: _isTV ? _buildTVLayout(iptv) : _buildMobileLayout(iptv),
       ),
     );
   }
 
-  Widget _buildMobileLayout(IptvService iptv) {
+  void _toggleMouseMode() {
+    _mouseController.toggleVisibility();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+            _mouseController.isVisible ? 'Mouse Mode ON' : 'Mouse Mode OFF'),
+        duration: const Duration(milliseconds: 1000),
+      ),
+    );
+  }
+
+  void _handleDirection(TVRemoteAction dir) {
+    if (_mouseController.isVisible) {
+      _moveMouse(dir);
+    } else {
+      // Standard Navigation
+      switch (dir) {
+        case TVRemoteAction.up:
+          if (_status == 'playing')
+            _nextChannel(); // Up/Down for next/prev channel when playing
+          break;
+        case TVRemoteAction.down:
+          if (_status == 'playing') _prevChannel();
+          break;
+        case TVRemoteAction.left:
+        case TVRemoteAction.right:
+          // Allow standard focus traversal?
+          // If we are playing, Left/Right could be seek or volume.
+          // Currently handled by existing listeners or system focus.
+          // Focusing is handled by passing null to callbacks in TVRemoteHandler?
+          // No, TVRemoteHandler callbacks return handled.
+          // If we want standard focus traversal, we should NOT return handled here.
+          // However, TVRemoteHandler implementation returns 'handled' if callback is not null.
+          // So if we define onUp, focus traversal is blocked.
+
+          // Hack: To allow focus traversal when NOT in mouse mode,
+          // we need to perform the traversal manually or rely on the fact
+          // that we only use this for "Channels" logic.
+
+          // For Up/Down in list mode, standard focus is better.
+          // So if not playing, maybe we should return ignored?
+          // BUT I cannot return ignored from void callback.
+
+          // Solution: Revisit TVRemoteHandler.
+          // But assuming I can't change it easily now, I will simulate focus movement.
+          if (_status != 'playing') {
+            if (dir == TVRemoteAction.up)
+              FocusScope.of(context).focusInDirection(TraversalDirection.up);
+            if (dir == TVRemoteAction.down)
+              FocusScope.of(context).focusInDirection(TraversalDirection.down);
+            if (dir == TVRemoteAction.left)
+              FocusScope.of(context).focusInDirection(TraversalDirection.left);
+            if (dir == TVRemoteAction.right)
+              FocusScope.of(context).focusInDirection(TraversalDirection.right);
+          }
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  void _moveMouse(TVRemoteAction dir) {
+    // Continuous movement could be better handled by holding down key,
+    // but onKeyEvent provides discrete events.
+    // We can move a chunk per press or start a timer if hold is supported (requires careful key handling).
+    // For now, move a significant chunk per press.
+    const step = 20.0;
+    switch (dir) {
+      case TVRemoteAction.up:
+        _mouseController.move(0, -step);
+        break;
+      case TVRemoteAction.down:
+        _mouseController.move(0, step);
+        break;
+      case TVRemoteAction.left:
+        _mouseController.move(-step, 0);
+        break;
+      case TVRemoteAction.right:
+        _mouseController.move(step, 0);
+        break;
+      default:
+        break;
+    }
+  }
+
+  void _focusSearch() {
+    // Only works if search field is present (Mobile/List view)
+    // On TV layout (not implemented fully yet based on code), assume list view or side panel.
+    // If not visible, maybe show the filter sheet.
+    // Focusing the node:
+    _searchFocusNode.requestFocus();
+    // Scroll to top?
+  }
+
+  void _handleBack() {
+    if (_isFullscreen) {
+      _toggleFullscreen();
+    } else if (_isMobile && _showingPlayer) {
+      setState(() => _showingPlayer = false);
+    } else if (_status == 'playing' || _status == 'buffering') {
+      _stop();
+    }
+  }
+
+  void _nextChannel() {
+    if (_currentChannel == null) return;
+    final next = _filterService.getNextChannel(_currentChannel!.id);
+    if (next != null) {
+      _startPlayback(next.url, channel: next);
+    }
+  }
+
+  void _prevChannel() {
+    if (_currentChannel == null) return;
+    final prev = _filterService.getPreviousChannel(_currentChannel!.id);
+    if (prev != null) {
+      _startPlayback(prev.url, channel: prev);
+    }
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      leading: (_isMobile && _showingPlayer)
+          ? IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => setState(() => _showingPlayer = false),
+            )
+          : null,
+      title: Row(
+        children: [
+          const Icon(Icons.tv, color: Colors.orange),
+          const SizedBox(width: 8),
+          Text(_isTV ? 'Chillz TV' : 'Chillz'),
+          if (_isTV) ...[
+            const SizedBox(width: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.purple.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text('TV MODE',
+                  style: TextStyle(fontSize: 10, color: Colors.purple)),
+            ),
+          ],
+          if (_isMobile && _showingPlayer && _currentChannel != null) ...[
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                _currentChannel!.name,
+                style: const TextStyle(fontSize: 14),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ],
+      ),
+      backgroundColor: const Color(0xFF1a2332),
+    );
+  }
+
+  Widget _buildBody(IptvService iptv) {
+    // TV: side-by-side layout
+    if (_isTV) {
+      return _buildTVLayout(iptv);
+    }
+
+    // Desktop/Tablet: side-by-side layout
+    if (PlatformLayout.shouldShowSideBySide(context)) {
+      return _buildDesktopLayout(iptv);
+    }
+
+    // Mobile: show channel list (player is separate screen)
+    return _buildMobileChannelList(iptv);
+  }
+
+  Widget _buildMobilePlayerScreen() {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => setState(() => _showingPlayer = false),
+        ),
+        title: _currentChannel != null
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_currentChannel!.name,
+                      style: const TextStyle(fontSize: 16)),
+                  Text(
+                    '${_currentChannel!.countryFlag} ${_currentChannel!.countryName} • ${_currentChannel!.categoryName}',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                  ),
+                ],
+              )
+            : const Text('Player'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.fullscreen),
+            onPressed: _toggleFullscreen,
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Expanded(child: _buildVideoArea()),
+          _buildMobileControls(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileChannelList(IptvService iptv) {
+    return Column(
+      children: [
+        // Search bar
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: TextField(
+            focusNode: _searchFocusNode,
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
+              hintText: 'Search channels...',
+              focusedBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: Colors.blue, width: 2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey.shade700),
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onChanged: (v) {
+              _searchTimer?.cancel();
+              _searchTimer = Timer(const Duration(milliseconds: 300), () {
+                if (mounted) {
+                  setState(() {
+                    _search = v.trim();
+                    _filterDirty = true;
+                    _currentPage = 0;
+                  });
+                }
+              });
+            },
+            onTap: () => setState(() => _isTextFieldFocused = true),
+            onEditingComplete: () =>
+                setState(() => _isTextFieldFocused = false),
+          ),
+        ),
+        // Filter chips
+        _buildMobileFilterChips(iptv),
+        // Channel count
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: Row(
+            children: [
+              Text(
+                '${_filteredChannels.length} channels',
+                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.refresh, size: 20),
+                onPressed: () {
+                  _filterDirty = true;
+                  iptv.loadChannels(forceRefresh: true);
+                },
+              ),
+            ],
+          ),
+        ),
+        // Channel list
+        Expanded(child: _buildChannelList()),
+      ],
+    );
+  }
+
+  Widget _buildMobileFilterChips(IptvService iptv) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        children: [
+          _buildFilterChip(
+            label: _selectedCategory == 'all' ? 'Category' : _selectedCategory,
+            isSelected: _selectedCategory != 'all',
+            onTap: () => _showFilterBottomSheet(
+              title: 'Select Category',
+              items: [
+                'all',
+                ...iptv.getUniqueCategories().map((c) => c['id'] as String)
+              ],
+              itemLabels: {
+                'all': 'All Categories',
+                ...{
+                  for (var c in iptv.getUniqueCategories())
+                    c['id'] as String: c['name'] as String
+                }
+              },
+              selected: _selectedCategory,
+              onSelect: (v) => setState(() {
+                _selectedCategory = v;
+                _filterDirty = true;
+                _currentPage = 0;
+              }),
+            ),
+          ),
+          const SizedBox(width: 8),
+          _buildFilterChip(
+            label: _selectedCountry == 'all' ? 'Country' : _selectedCountry,
+            isSelected: _selectedCountry != 'all',
+            onTap: () => _showFilterBottomSheet(
+              title: 'Select Country',
+              items: [
+                'all',
+                ...iptv.getUniqueCountries().map((c) => c['code'] as String)
+              ],
+              itemLabels: {
+                'all': 'All Countries',
+                ...{
+                  for (var c in iptv.getUniqueCountries())
+                    c['code'] as String: c['name'] as String
+                }
+              },
+              selected: _selectedCountry,
+              onSelect: (v) => setState(() {
+                _selectedCountry = v;
+                _filterDirty = true;
+                _currentPage = 0;
+              }),
+            ),
+          ),
+          const SizedBox(width: 8),
+          _buildFilterChip(
+            label: _selectedLanguage == 'all' ? 'Language' : _selectedLanguage,
+            isSelected: _selectedLanguage != 'all',
+            onTap: () => _showFilterBottomSheet(
+              title: 'Select Language',
+              items: [
+                'all',
+                ...iptv.getUniqueLanguages().map((c) => c['code'] as String)
+              ],
+              itemLabels: {
+                'all': 'All Languages',
+                ...{
+                  for (var c in iptv.getUniqueLanguages())
+                    c['code'] as String: c['name'] as String
+                }
+              },
+              selected: _selectedLanguage,
+              onSelect: (v) => setState(() {
+                _selectedLanguage = v;
+                _filterDirty = true;
+                _currentPage = 0;
+              }),
+            ),
+          ),
+          if (_selectedCategory != 'all' ||
+              _selectedCountry != 'all' ||
+              _selectedLanguage != 'all') ...[
+            const SizedBox(width: 8),
+            ActionChip(
+              label: const Text('Clear'),
+              onPressed: () => setState(() {
+                _selectedCategory = 'all';
+                _selectedCountry = 'all';
+                _selectedLanguage = 'all';
+                _filterDirty = true;
+                _currentPage = 0;
+              }),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(
+      {required String label,
+      required bool isSelected,
+      required VoidCallback onTap}) {
+    return FilterChip(
+      label: Text(label,
+          style: TextStyle(
+              fontSize: 12,
+              color: isSelected ? Colors.white : Colors.grey[300])),
+      selected: isSelected,
+      onSelected: (_) => onTap(),
+      selectedColor: Colors.blue.shade700,
+      backgroundColor: Colors.grey.shade800,
+    );
+  }
+
+  void _showFilterBottomSheet({
+    required String title,
+    required List<String> items,
+    required Map<String, String> itemLabels,
+    required String selected,
+    required void Function(String) onSelect,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1a2332),
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(title,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: items.length,
+              itemBuilder: (context, i) {
+                final item = items[i];
+                return ListTile(
+                  title: Text(itemLabels[item] ?? item),
+                  trailing: item == selected
+                      ? const Icon(Icons.check, color: Colors.blue)
+                      : null,
+                  onTap: () {
+                    onSelect(item);
+                    Navigator.pop(context);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileControls() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: const Color(0xFF0B1220),
+      child: Column(
+        children: [
+          // Status
+          if (_status == 'buffering' || _status == 'loading')
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(_status == 'buffering' ? 'Buffering...' : 'Loading...',
+                      style: const TextStyle(color: Colors.yellow)),
+                ],
+              ),
+            ),
+          // Controls
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.skip_previous, size: 32),
+                onPressed: _prevChannel,
+              ),
+              const SizedBox(width: 16),
+              IconButton(
+                icon: Icon(
+                  _player.isPlaying
+                      ? Icons.pause_circle_filled
+                      : Icons.play_circle_filled,
+                  size: 56,
+                  color: Colors.blue,
+                ),
+                onPressed: _playPause,
+              ),
+              const SizedBox(width: 16),
+              IconButton(
+                icon: const Icon(Icons.skip_next, size: 32),
+                onPressed: _nextChannel,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Volume
+          Row(
+            children: [
+              IconButton(
+                icon:
+                    Icon(_player.isMuted ? Icons.volume_off : Icons.volume_up),
+                onPressed: _toggleMute,
+              ),
+              Expanded(
+                child: Slider(
+                  value: _volume,
+                  min: 0,
+                  max: 200,
+                  onChanged: _setVolume,
+                  activeColor: _volume > 100 ? Colors.orange : Colors.blue,
+                ),
+              ),
+              Text('${_volume.round()}%', style: const TextStyle(fontSize: 12)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopLayout(IptvService iptv) {
     return Row(
       children: [
         _buildLeftPanel(iptv),
@@ -852,7 +1455,7 @@ class _ChillzHomeState extends State<ChillzHome> with WidgetsBindingObserver {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                onTap: () => _startPlayback(ch.url),
+                onTap: () => _startPlayback(ch.url, channel: ch),
               );
             },
           ),
@@ -893,7 +1496,7 @@ class _ChillzHomeState extends State<ChillzHome> with WidgetsBindingObserver {
               itemBuilder: (context, i) {
                 final ch = _filteredChannels[i];
                 return _TVFocusableItem(
-                  onTap: () => _startPlayback(ch.url),
+                  onTap: () => _startPlayback(ch.url, channel: ch),
                   child: ListTile(
                     leading: ch.logo.isNotEmpty
                         ? Image.network(

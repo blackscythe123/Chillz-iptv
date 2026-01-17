@@ -13,6 +13,7 @@ import 'package:http/http.dart' as http;
 import 'models/iptv_models.dart';
 import 'services/iptv_service.dart';
 import 'services/vlc_player_service.dart';
+import 'pages/landing_page.dart';
 
 // Language code to full name mapping
 const Map<String, String> _languageNames = {
@@ -129,11 +130,17 @@ class ChillzApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Chillz — TV',
+        title: 'Chillz TV',
         theme: ThemeData.dark().copyWith(
           scaffoldBackgroundColor: const Color(0xFF0F1720),
+          colorScheme: ColorScheme.dark(
+            primary: Colors.cyan,
+            secondary: Colors.cyanAccent,
+            surface: const Color(0xFF1E2732),
+          ),
+          focusColor: Colors.cyan,
         ),
-        home: const ChillzHome(),
+        home: const LandingPage(),
       ),
     );
   }
