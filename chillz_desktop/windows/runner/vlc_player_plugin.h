@@ -19,6 +19,8 @@
 #include <string>
 #include <functional>
 #include <thread>
+#include <queue>
+#include <condition_variable>
 
 // Forward declarations for libVLC types
 typedef struct libvlc_instance_t libvlc_instance_t;
@@ -256,6 +258,23 @@ private:
     std::atomic<bool> initialized_{false};
     std::atomic<bool> playing_{false};
     std::string current_url_;
+
+    // VLC Command Thread - ALL blocking VLC operations run here, NEVER on UI thread
+    std::thread vlc_command_thread_;
+    std::queue<std::function<void()>> vlc_tasks_;
+    std::mutex vlc_tasks_mutex_;
+    std::condition_variable vlc_tasks_cv_;
+    std::atomic<bool> vlc_thread_running_{false};
+
+    // Worker thread methods
+    void StartVlcThread();
+    void StopVlcThread();
+    void EnqueueVlcTask(std::function<void()> task);
+    void VlcThreadLoop();
+
+    // Internal async implementations (run on VLC thread)
+    void PlayAsync(const std::string& url);
+    void StopAsync();
 };
 
 }  // namespace vlc_player

@@ -8,11 +8,12 @@ import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 import 'dart:async';
-import 'package:http/http.dart' as http;
+// import 'package:http/http.dart' as http; // REMOVED: No longer used after removing blocking URL check
 
 import 'models/iptv_models.dart';
 import 'services/iptv_service.dart';
 import 'services/vlc_player_service.dart';
+import 'pages/landing_page.dart';
 
 // Language code to full name mapping
 const Map<String, String> _languageNames = {
@@ -129,11 +130,17 @@ class ChillzApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Chillz — TV',
+        title: 'Chillz TV',
         theme: ThemeData.dark().copyWith(
           scaffoldBackgroundColor: const Color(0xFF0F1720),
+          colorScheme: ColorScheme.dark(
+            primary: Colors.cyan,
+            secondary: Colors.cyanAccent,
+            surface: const Color(0xFF1E2732),
+          ),
+          focusColor: Colors.cyan,
         ),
-        home: const ChillzHome(),
+        home: const LandingPage(),
       ),
     );
   }
@@ -471,30 +478,9 @@ class _ChillzHomeState extends State<ChillzHome> with WidgetsBindingObserver {
     // 3. Create new media
     // 4. Start playback
     // NO ghost audio because libvlc_media_player_stop() is synchronous
-
-    // Proactive URL Check
-    try {
-      final uri = Uri.parse(url);
-      final response = await http.get(uri).timeout(const Duration(seconds: 5));
-
-      if (response.statusCode == 403) {
-        setState(() {
-          _status = 'error';
-          _lastError =
-              'Access Denied (403). Try finding a working proxy, or use a VPN.';
-        });
-        return;
-      } else if (response.statusCode == 404) {
-        setState(() {
-          _status = 'error';
-          _lastError = 'Stream Not Found (404). This link is no longer valid.';
-        });
-        return;
-      }
-    } catch (e) {
-      debugPrint('[Chillz] URL check failed (ignoring): $e');
-      // Proceed to play anyway - network issues might be transient or handled by VLC
-    }
+    //
+    // NOTE: Proactive URL check REMOVED to prevent UI freezing.
+    // VLC handles 403/404/timeout errors internally and reports via events.
 
     final success = await _vlc.play(url);
 
@@ -504,40 +490,43 @@ class _ChillzHomeState extends State<ChillzHome> with WidgetsBindingObserver {
         _lastError = _vlc.lastError ?? 'Failed to play stream';
       });
     } else {
-      // FIX: Reclaim keyboard focus for Flutter after playback starts
+      // Reclaim keyboard focus for Flutter after playback starts
       _appFocusNode.requestFocus();
 
-      // FIX 5: One-time delayed resize 300ms after play starts
-      // VLC may report late dimensions, this ensures HWND is correct
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted) _updateVideoBounds();
-      });
-
-      // CRITICAL: Reapply volume after new stream starts
-      // Volume >100% needs to be reapplied after media change
-      if (_volume != 100) {
-        Future.delayed(const Duration(milliseconds: 600), () {
-          if (mounted) {
-            debugPrint(
-                '[Chillz] Reapplying volume after stream change: ${_volume.round()}%');
-            _vlc.setVolume(_volume.round());
-          }
-        });
-      }
-
-      // FIX: Ensure status transitions to playing even if event is missed
-      Future.delayed(const Duration(seconds: 1), () async {
-        if (mounted) {
-          final isPlaying = await _vlc.checkIsPlaying();
-          debugPrint('[Chillz] Post-play check: isPlaying=$isPlaying');
-          if (isPlaying && _status != 'playing') {
-            setState(() => _status = 'playing');
-          }
-          // Refresh tracks one more time to be sure
-          await _vlc.refreshAudioTracks();
-        }
-      });
+      // Consolidated post-play setup: single delayed handler to avoid timer bursts
+      _handlePostPlaySetup();
     }
+  }
+
+  /// Consolidated post-play setup to avoid multiple delayed callbacks
+  /// This prevents timer bursts and reduces platform channel calls
+  void _handlePostPlaySetup() async {
+    // Wait for VLC to stabilize (300ms is enough for HWND setup)
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
+
+    // Update video bounds after VLC has started
+    await _updateVideoBounds();
+
+    // Reapply volume if not default (VLC may reset on media change)
+    if (_volume != 100) {
+      debugPrint(
+          '[Chillz] Reapplying volume after stream change: ${_volume.round()}%');
+      await _vlc.setVolume(_volume.round());
+    }
+
+    // Wait a bit more for audio tracks to become available
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
+
+    // Refresh audio tracks (non-blocking, just updates state)
+    await _vlc.refreshAudioTracks();
+
+    // Update audio track state from VLC
+    setState(() {
+      _audioTracks = _vlc.audioTracks;
+      _selectedAudioTrack = _vlc.currentAudioTrack;
+    });
   }
 
   Future<void> _retry() async {
