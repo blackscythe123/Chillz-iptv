@@ -495,6 +495,9 @@ bool VlcPlayerPlugin::Initialize(const std::string& plugins_path) {
     initialized_ = true;
     OutputDebugStringA("[VLC] Initialized successfully\n");
 
+    // Start the VLC command thread - ALL blocking VLC operations will run here
+    StartVlcThread();
+
     // Send initialized event
     flutter::EncodableMap data;
     data[flutter::EncodableValue("initialized")] = flutter::EncodableValue(true);
@@ -509,11 +512,16 @@ bool VlcPlayerPlugin::Play(const std::string& url) {
         return false;
     }
 
+    // CRITICAL: Ensure VLC command thread is running
+    if (!vlc_thread_running_) {
+        OutputDebugStringA("[VLC] Play failed: command thread not running\n");
+        return false;
+    }
+
     // CRITICAL ASSERTION: video_hwnd_ MUST exist before Play
-    // If it doesn't, VLC will create its own top-level window
+    // HWND creation MUST happen on UI thread (Windows requirement)
     if (!video_hwnd_) {
-        OutputDebugStringA("[VLC] ERROR: Play() called but video_hwnd_ is NULL! VLC will create external window!\n");
-        // Attempt to create HWND now as fallback
+        OutputDebugStringA("[VLC] ERROR: Play() called but video_hwnd_ is NULL! Creating fallback...\n");
         if (registrar_) {
             auto parent_view = registrar_->GetView();
             if (parent_view) {
@@ -527,7 +535,6 @@ bool VlcPlayerPlugin::Play(const std::string& url) {
                     video_w_ = client_rect.right - client_rect.left;
                     video_h_ = client_rect.bottom - client_rect.top;
 
-                    // CRITICAL: Use WS_EX_TRANSPARENT for z-order
                     video_hwnd_ = CreateWindowExW(
                         WS_EX_TRANSPARENT,
                         L"STATIC",
@@ -536,14 +543,10 @@ bool VlcPlayerPlugin::Play(const std::string& url) {
                         video_x_, video_y_, video_w_, video_h_,
                         parent, nullptr, GetModuleHandle(nullptr), nullptr);
                     
-                    // Position at bottom of z-order
                     if (video_hwnd_) {
                         SetWindowPos(video_hwnd_, HWND_BOTTOM, 0, 0, 0, 0, 
                             SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-                    }
-
-                    if (video_hwnd_) {
-                        // Prevent focus stealing
+                        
                         LONG_PTR style = GetWindowLongPtr(video_hwnd_, GWL_STYLE);
                         style &= ~WS_TABSTOP;
                         SetWindowLongPtr(video_hwnd_, GWL_STYLE, style);
@@ -563,80 +566,29 @@ bool VlcPlayerPlugin::Play(const std::string& url) {
                             return std::nullopt;
                         };
                         resize_delegate_id_ = registrar_->RegisterTopLevelWindowProcDelegate(delegate);
-
-                        // Ensure the Flutter parent retains keyboard focus
-                        HWND parent_for_fallback = registrar_->GetView()->GetNativeWindow();
-                        if (parent_for_fallback) {
-                            SetFocus(parent_for_fallback);
-                        }
-
-                        std::ostringstream oss;
-                        oss << "[VLC] Play: fallback HWND created = 0x" << std::hex << reinterpret_cast<uintptr_t>(video_hwnd_);
-                        OutputDebugStringA(oss.str().c_str());
-                        OutputDebugStringA("\n");
+                        SetFocus(parent);
+                        OutputDebugStringA("[VLC] Play: fallback HWND created\n");
                     }
                 }
             }
         }
 
         if (!video_hwnd_) {
-            OutputDebugStringA("[VLC] FATAL: Could not create video_hwnd_, aborting Play to prevent external window!\n");
+            OutputDebugStringA("[VLC] FATAL: Could not create video_hwnd_\n");
             return false;
         }
     }
 
-    {
-        std::ostringstream oss;
-        oss << "[VLC] Play: video_hwnd_ = 0x" << std::hex << reinterpret_cast<uintptr_t>(video_hwnd_);
-        OutputDebugStringA(oss.str().c_str());
-        OutputDebugStringA("\n");
-    }
+    OutputDebugStringA("[VLC] Play: enqueuing async playback\n");
 
-    // CRITICAL: Stop current playback FIRST to prevent ghost audio
-    Stop();
+    // NON-BLOCKING: Enqueue the play operation to run on VLC command thread
+    // UI thread returns immediately - no blocking!
+    EnqueueVlcTask([this, url]() {
+        PlayAsync(url);
+    });
 
-    // Create new media
-    current_media_ = fn_libvlc_media_new_location_(vlc_instance_, url.c_str());
-    if (!current_media_) {
-        OutputDebugStringA(("Failed to create media for: " + url + "\n").c_str());
-        return false;
-    }
-
-    // Add IPTV-friendly options
-    fn_libvlc_media_add_option_(current_media_, ":network-caching=3000");
-    fn_libvlc_media_add_option_(current_media_, ":live-caching=3000");
-    fn_libvlc_media_add_option_(current_media_, ":clock-jitter=0");
-    fn_libvlc_media_add_option_(current_media_, ":clock-synchro=0");
-
-    // Set media on player
-    fn_libvlc_media_player_set_media_(media_player_, current_media_);
-
-    // Release media (player has its own reference)
-    fn_libvlc_media_release_(current_media_);
-    current_media_ = nullptr;
-
-    // CRITICAL: ALWAYS set HWND before play - this is mandatory to prevent VLC
-    // from creating its own window. Never pass nullptr here.
-    {
-        std::ostringstream oss;
-        oss << "[VLC] Setting HWND on media_player before play: 0x" << std::hex << reinterpret_cast<uintptr_t>(video_hwnd_);
-        OutputDebugStringA(oss.str().c_str());
-        OutputDebugStringA("\n");
-    }
-    fn_libvlc_media_player_set_hwnd_(media_player_, reinterpret_cast<void*>(video_hwnd_));
-
-    // Start playback
-    OutputDebugStringA("[VLC] Calling libvlc_media_player_play\n");
-    int result = fn_libvlc_media_player_play_(media_player_);
-    if (result != 0) {
-        OutputDebugStringA("Failed to start playback\n");
-        return false;
-    }
-
-    current_url_ = url;
-    playing_ = true;
-
-    OutputDebugStringA(("Playing: " + url + "\n").c_str());
+    // Return success immediately - actual playback starts on worker thread
+    // VLC events will notify Dart when playback actually starts
     return true;
 }
 
@@ -645,35 +597,26 @@ void VlcPlayerPlugin::Stop() {
         return;
     }
 
-    OutputDebugStringA("[VLC] Stopping playback (preventing ghost audio)\n");
+    OutputDebugStringA("[VLC] Stop: enqueuing async stop\n");
 
-    // CRITICAL: Stop immediately to kill all audio/video
-    fn_libvlc_media_player_stop_(media_player_);
-
-    // Re-set HWND after stop to ensure it's ready for next Play()
-    // This is critical because VLC may internally reset video output state
-    if (video_hwnd_) {
-        fn_libvlc_media_player_set_hwnd_(media_player_, reinterpret_cast<void*>(video_hwnd_));
-        std::ostringstream oss;
-        oss << "[VLC] Stop: re-attached HWND = 0x" << std::hex << reinterpret_cast<uintptr_t>(video_hwnd_);
-        OutputDebugStringA(oss.str().c_str());
-        OutputDebugStringA("\n");
-
-        // Ensure Flutter keeps focus
-        HWND parent = GetParent(video_hwnd_);
-        if (parent) {
-            SetFocus(parent);
-            OutputDebugStringA("[VLC] Stop: focus returned to parent\n");
-        }
-    }
-    
+    // Mark as stopped immediately so UI updates
     playing_ = false;
     current_url_.clear();
 
-    // Send stopped event
-    flutter::EncodableMap data;
-    data[flutter::EncodableValue("state")] = flutter::EncodableValue("stopped");
-    SendEvent("playbackState", data);
+    // NON-BLOCKING: Enqueue the stop operation to run on VLC command thread
+    // UI thread returns immediately - no blocking!
+    if (vlc_thread_running_) {
+        EnqueueVlcTask([this]() {
+            StopAsync();
+        });
+    } else {
+        // Fallback: if thread not running, use detached thread
+        std::thread([this]() {
+            StopAsync();
+        }).detach();
+    }
+
+    OutputDebugStringA("[VLC] Stop: returning immediately\n");
 }
 
 void VlcPlayerPlugin::Pause() {
@@ -790,7 +733,10 @@ bool VlcPlayerPlugin::IsPlaying() {
 void VlcPlayerPlugin::Dispose() {
     OutputDebugStringA("Disposing VLC player\n");
 
-    // Stop playback first
+    // Stop the VLC command thread FIRST
+    StopVlcThread();
+
+    // Stop playback (now runs synchronously since thread is stopped)
     if (media_player_) {
         fn_libvlc_media_player_stop_(media_player_);
         
@@ -1110,8 +1056,9 @@ void VlcPlayerPlugin::VlcEventCallback(const void* event_ptr, void* user_data) {
 }
 
 void VlcPlayerPlugin::SendEvent(const std::string& event_name, const flutter::EncodableMap& data) {
-    // If called from a non-platform thread, enqueue and post a message to the
-    // platform window so events are dispatched on the platform thread.
+    // THREAD-SAFETY: VLC callbacks run on VLC's internal threads, NOT the platform thread.
+    // Flutter's EventSink is NOT thread-safe for cross-thread calls.
+    // We MUST use PostMessage to defer event dispatch to the platform thread.
     {
         std::lock_guard<std::mutex> lock(pending_events_mutex_);
         pending_events_.push_back({event_name, data});
@@ -1129,13 +1076,10 @@ void VlcPlayerPlugin::SendEvent(const std::string& event_name, const flutter::En
         }
     }
 
-    // Fallback: dispatch directly if we couldn't post to platform window
-    std::lock_guard<std::mutex> lock(event_sink_mutex_);
-    if (event_sink_) {
-        flutter::EncodableMap event_data = data;
-        event_data[flutter::EncodableValue("event")] = flutter::EncodableValue(event_name);
-        event_sink_->Success(flutter::EncodableValue(event_data));
-    }
+    // WARNING: Could not post to platform thread.
+    // Event remains queued and will be dispatched on next opportunity.
+    // DO NOT call event_sink_ directly from VLC threads - it's not thread-safe!
+    OutputDebugStringA("[VLC] WARNING: Failed to post event to platform thread, event queued\n");
 }
 
 void VlcPlayerPlugin::DispatchPendingEvents() {
@@ -1160,4 +1104,165 @@ void VlcPlayerPlugin::DispatchPendingEvents() {
     }
 }
 
+// ============================================================================
+// VLC COMMAND THREAD IMPLEMENTATION
+// All blocking VLC operations (stop, play, media creation) run on this thread.
+// The UI thread only enqueues tasks and returns immediately.
+// ============================================================================
+
+void VlcPlayerPlugin::StartVlcThread() {
+    if (vlc_thread_running_) return;
+    
+    vlc_thread_running_ = true;
+    vlc_command_thread_ = std::thread(&VlcPlayerPlugin::VlcThreadLoop, this);
+    OutputDebugStringA("[VLC] Command thread started\n");
+}
+
+void VlcPlayerPlugin::StopVlcThread() {
+    if (!vlc_thread_running_) return;
+    
+    vlc_thread_running_ = false;
+    vlc_tasks_cv_.notify_all();
+    
+    if (vlc_command_thread_.joinable()) {
+        vlc_command_thread_.join();
+    }
+    OutputDebugStringA("[VLC] Command thread stopped\n");
+}
+
+void VlcPlayerPlugin::EnqueueVlcTask(std::function<void()> task) {
+    {
+        std::lock_guard<std::mutex> lock(vlc_tasks_mutex_);
+        vlc_tasks_.push(std::move(task));
+    }
+    vlc_tasks_cv_.notify_one();
+}
+
+void VlcPlayerPlugin::VlcThreadLoop() {
+    OutputDebugStringA("[VLC] Command thread loop started\n");
+    
+    while (vlc_thread_running_) {
+        std::function<void()> task;
+        {
+            std::unique_lock<std::mutex> lock(vlc_tasks_mutex_);
+            vlc_tasks_cv_.wait(lock, [this] { 
+                return !vlc_tasks_.empty() || !vlc_thread_running_; 
+            });
+            
+            if (!vlc_thread_running_ && vlc_tasks_.empty()) {
+                break;
+            }
+            
+            if (!vlc_tasks_.empty()) {
+                task = std::move(vlc_tasks_.front());
+                vlc_tasks_.pop();
+            }
+        }
+        
+        if (task) {
+            try {
+                task();
+            } catch (...) {
+                OutputDebugStringA("[VLC] Exception in command thread task\n");
+            }
+        }
+    }
+    
+    OutputDebugStringA("[VLC] Command thread loop ended\n");
+}
+
+void VlcPlayerPlugin::PlayAsync(const std::string& url) {
+    // This runs on the VLC command thread, NOT the UI thread
+    OutputDebugStringA("[VLC] PlayAsync: executing on worker thread\n");
+    
+    if (!media_player_) {
+        OutputDebugStringA("[VLC] PlayAsync: media_player_ is null\n");
+        flutter::EncodableMap data;
+        data[flutter::EncodableValue("error")] = flutter::EncodableValue("Not initialized");
+        data[flutter::EncodableValue("recoverable")] = flutter::EncodableValue(false);
+        SendEvent("error", data);
+        return;
+    }
+
+    // Stop current playback first (blocking, but we're on worker thread)
+    fn_libvlc_media_player_stop_(media_player_);
+    OutputDebugStringA("[VLC] PlayAsync: previous playback stopped\n");
+
+    // Create new media (blocking network operation for HLS)
+    libvlc_media_t* media = fn_libvlc_media_new_location_(vlc_instance_, url.c_str());
+    if (!media) {
+        OutputDebugStringA(("[VLC] PlayAsync: Failed to create media for: " + url + "\n").c_str());
+        flutter::EncodableMap data;
+        data[flutter::EncodableValue("error")] = flutter::EncodableValue("Failed to create media");
+        data[flutter::EncodableValue("recoverable")] = flutter::EncodableValue(true);
+        SendEvent("error", data);
+        return;
+    }
+
+    // Add IPTV-friendly options
+    fn_libvlc_media_add_option_(media, ":network-caching=3000");
+    fn_libvlc_media_add_option_(media, ":live-caching=3000");
+    fn_libvlc_media_add_option_(media, ":clock-jitter=0");
+    fn_libvlc_media_add_option_(media, ":clock-synchro=0");
+
+    // Set media on player (blocking)
+    fn_libvlc_media_player_set_media_(media_player_, media);
+
+    // Release our reference (player keeps its own)
+    fn_libvlc_media_release_(media);
+
+    // Set HWND (must be done before play)
+    if (video_hwnd_) {
+        fn_libvlc_media_player_set_hwnd_(media_player_, reinterpret_cast<void*>(video_hwnd_));
+    }
+
+    // Start playback (blocking - waits for initial connection)
+    OutputDebugStringA("[VLC] PlayAsync: calling libvlc_media_player_play\n");
+    int result = fn_libvlc_media_player_play_(media_player_);
+    
+    if (result != 0) {
+        OutputDebugStringA("[VLC] PlayAsync: play() returned error\n");
+        flutter::EncodableMap data;
+        data[flutter::EncodableValue("error")] = flutter::EncodableValue("Playback failed to start");
+        data[flutter::EncodableValue("recoverable")] = flutter::EncodableValue(true);
+        SendEvent("error", data);
+        return;
+    }
+
+    current_url_ = url;
+    playing_ = true;
+
+    OutputDebugStringA(("[VLC] PlayAsync: playback started for " + url + "\n").c_str());
+    
+    // Send playing event (VLC events may also fire, but this ensures it)
+    flutter::EncodableMap data;
+    data[flutter::EncodableValue("state")] = flutter::EncodableValue("opening");
+    SendEvent("playbackState", data);
+}
+
+void VlcPlayerPlugin::StopAsync() {
+    // This runs on the VLC command thread, NOT the UI thread
+    OutputDebugStringA("[VLC] StopAsync: executing on worker thread\n");
+    
+    if (!media_player_) {
+        return;
+    }
+
+    // Blocking stop
+    fn_libvlc_media_player_stop_(media_player_);
+
+    // Re-attach HWND for next play
+    if (video_hwnd_) {
+        fn_libvlc_media_player_set_hwnd_(media_player_, reinterpret_cast<void*>(video_hwnd_));
+    }
+
+    OutputDebugStringA("[VLC] StopAsync: completed\n");
+
+    // Send stopped event
+    flutter::EncodableMap data;
+    data[flutter::EncodableValue("state")] = flutter::EncodableValue("stopped");
+    SendEvent("playbackState", data);
+}
+
 }  // namespace vlc_player
+

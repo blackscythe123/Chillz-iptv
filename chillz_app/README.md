@@ -1,70 +1,153 @@
-# Chillz Desktop (Flutter + libVLC) 🎬
+# Chillz App (Flutter Mobile/TV) 📱📺
 
-**Chillz Desktop** is a native Windows IPTV player that bridges the gap between high-performance C++ media playback and modern Flutter UI.
+**Chillz App** is a cross-platform Flutter application designed for mobile devices and Android TV, providing a native IPTV streaming experience optimized for touch and remote control interfaces.
 
-It is built to handle the complexities of live HLS streaming that standard video players often fail at, providing a "VLC-grade" experience with a beautiful interface.
+It combines the power of Flutter's cross-platform capabilities with platform-specific optimizations for the best user experience on phones, tablets, and TV screens.
 
 ---
 
-## 🏛️ Architecture Deep Dive
+## 🏛️ Architecture Overview
 
-This application follows a strict 3-layer architecture to ensure stability and performance:
+This application uses Flutter's platform channel architecture for optimal performance:
 
-### 1. Native Layer (C++) - `windows/runner/vlc_player_plugin.cpp`
-This is the core engine. Flutter cannot render video efficiently on its own, so we bypass it.
--   **Direct libVLC Embedding**: We link directly against `libvlc.dll` and `libvlccore.dll`.
--   **Child HWND**: The plugin creates a completely separate Windows HWND (Window Handle) that is a child of the Flutter window.
--   **Direct Rendering**: VLC renders video pixels directly into this child HWND. Use `_updateVideoBounds()` in Flutter to resize this window to match the UI layout.
--   **Event Loop**: A custom `VlcEventCallback` captures low-level libVLC events (Buffering, Errors, EOS) and sends them to Flutter via an `EventChannel`.
--   **Error Interception**: Specifically captures HTTP 403/404 errors from the VLC log to detect Geo-blocking.
+### 1. Flutter Layer
+-   **Cross-platform UI**: Single codebase for Android phones, tablets, and TV
+-   **Adaptive Layouts**: Responsive design that adapts to screen size and input method
+-   **State Management**: Provider pattern for clean state management
+-   **Platform Channels**: Native integration for media playback
 
-### 2. Service Layer (Dart) - `lib/services/vlc_player_service.dart`
-The bridge between chaos and order.
--   **Singleton Controller**: `VlcPlayerController` manages the single instance of the player.
--   **Platform Channels**:
-    -   `MethodChannel`: Sends commands DOWN to C++ (Play, Stop, SetVolume).
-    -   `EventChannel`: Receives state updates UP from C++ (Time, State, Errors).
--   **State Management**: Normalizes disjointed VLC states (Opening, Buffering, Playing) into a clean UI state machine.
+### 2. Platform-Specific Features
 
-### 3. UI Layer (Flutter) - `lib/main.dart`
-The user experience.
--   **Z-Ordering Hack**: Since the video is a native HWND, it technically floats *on top* of the Flutter canvas. To show dialogs (like Audio Selection), we use `_vlc.hideVideo()` to temporarily hide the HWND so the Flutter dialog is visible.
--   **Proactive URL Check**: Before asking VLC to play, we send a quick HTTP GET request to check for 403/404 errors, giving the user instant feedback ("Use VPN") instead of a generic timeout.
--   **Input Handling**: Captures global keyboard shortcuts (Space, F, A, M) even when the video window has OS-level focus.
+#### Mobile (Android/iOS)
+-   **Touch Optimized**: Gesture controls for volume, seeking, brightness
+-   **Picture-in-Picture**: Continue watching while using other apps
+-   **Background Playback**: Audio continues when app is minimized
+-   **Notifications**: Media controls in notification shade
+
+#### Android TV
+-   **D-Pad Navigation**: Full remote control support
+-   **Leanback UI**: TV-optimized interface with focus management
+-   **Voice Search**: Integration with Android TV voice commands
+-   **Recommendations**: Channel suggestions on TV home screen
 
 ---
 
 ## ✨ Key Features
 
--   **Proactive Error Handling**: Detects Geo-blocked (403) and Dead (404) streams *before* playback.
--   **Audio Track Selection**: Full support for multi-language streams.
-    -   *Shortcut*: Press `A` to toggle tracks.
--   **Volume Boost**: VLC-style amplification up to 200%.
--   **Dev Mode**: Real-time diagnostic overlay (Press the "Bug" icon).
+-   **Cross-Platform**: Single codebase for mobile and TV
+-   **Adaptive UI**: Automatically adjusts to device type and screen size
+-   **Remote Control Support**: Full D-pad and remote button mapping for TV
+-   **Touch Gestures**: Swipe controls for mobile devices
+-   **Channel Management**: Browse, search, and favorite channels
+-   **Multi-Language**: Support for multiple audio tracks
+-   **Offline Mode**: Cache channel lists for offline browsing
 
 ---
 
 ## 🛠️ Development Setup
 
 ### Prerequisites
--   Windows 10/11 x64.
--   Visual Studio 2022 (Desktop C++ Workload).
--   Flutter SDK (Stable).
+-   Flutter SDK (Stable channel)
+-   Android Studio / Xcode (for respective platforms)
+-   Android device/emulator or iOS device/simulator
 
 ### Building
-The `build.gradle` (or `CMakeLists.txt` for Windows) handles linking the pre-bundled VLC binaries located in `windows/runner/vlc/`.
 
-```powershell
+```bash
 # Install dependencies
 flutter pub get
 
-# Run in debug mode (Hot Reload enabled)
-flutter run -d windows
+# Run on connected device
+flutter run
 
-# Build optimized release (Reduced size, no debug console)
-flutter build windows --release
+# Build APK for Android
+flutter build apk
+
+# Build for Android TV
+flutter build apk --target-platform android-arm64 --release
+
+# Build for iOS
+flutter build ios
 ```
 
-### Common Issues
--   **"DllNotFoundException"**: Ensure `libvlc.dll` is in the build output directory (handled by `cmake` copy rules).
--   **Video covers UI**: Remember the video is a separate HWND. Use `_vlc.hideVideo()` if you need to show an overlay that isn't transparent.
+---
+
+## 📁 Project Structure
+
+```
+chillz_app/
+├── lib/
+│   ├── main.dart              # App entry point
+│   ├── screens/               # UI screens
+│   ├── widgets/               # Reusable widgets
+│   ├── services/              # Business logic
+│   ├── models/                # Data models
+│   └── utils/                 # Helper functions
+├── android/                   # Android-specific code
+├── ios/                       # iOS-specific code
+└── pubspec.yaml               # Dependencies
+```
+
+---
+
+## 📱 Platform-Specific Notes
+
+### Android
+-   Minimum SDK: 21 (Android 5.0)
+-   Target SDK: Latest stable
+-   Permissions: Internet, Network State
+
+### Android TV
+-   Leanback launcher support
+-   TV input framework integration
+-   Remote control event handling
+
+### iOS
+-   Minimum iOS: 12.0
+-   AVFoundation for media playback
+-   Background modes enabled
+
+---
+
+## 🎮 Controls
+
+### Mobile
+-   **Tap**: Play/Pause
+-   **Swipe Up/Down**: Volume
+-   **Swipe Left/Right**: Seek
+-   **Double Tap**: Fullscreen
+
+### Android TV
+-   **D-Pad Center**: Play/Pause
+-   **D-Pad Up/Down**: Channel navigation
+-   **Back**: Exit fullscreen/Go back
+-   **Menu**: Show options
+
+---
+
+## 🚀 Performance Optimizations
+
+1.  **Lazy Loading**: Channels loaded on demand
+2.  **Image Caching**: Channel logos cached locally
+3.  **Memory Management**: Proper disposal of resources
+4.  **Platform Channels**: Native code for heavy operations
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please ensure:
+1. Code follows Flutter best practices
+2. UI is tested on both mobile and TV
+3. Platform-specific features are properly isolated
+4. Performance is maintained
+
+---
+
+## 📄 License
+
+See root project LICENSE file.
+
+---
+
+**Built with ❤️ using Flutter**
