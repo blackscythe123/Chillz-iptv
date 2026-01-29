@@ -112,6 +112,24 @@ install(DIRECTORY "${NATIVE_ASSETS_DIR}"
    DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
    COMPONENT Runtime)
 
+# === libVLC Bundle ===
+# Copy libVLC libraries and plugins folder from libvlc_bundle to output directory
+set(LIBVLC_BUNDLE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../libvlc_bundle_linux")
+if(EXISTS "${LIBVLC_BUNDLE_DIR}/libvlc.so.5")
+  # Install libVLC shared libraries
+  file(GLOB LIBVLC_LIBS "${LIBVLC_BUNDLE_DIR}/*.so*")
+  install(FILES ${LIBVLC_LIBS} DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
+  
+  # Install VLC plugins
+  if(EXISTS "${LIBVLC_BUNDLE_DIR}/vlc/plugins")
+    install(DIRECTORY "${LIBVLC_BUNDLE_DIR}/vlc/plugins" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}/vlc" COMPONENT Runtime)
+  endif()
+  
+  message(STATUS "libVLC bundle found at ${LIBVLC_BUNDLE_DIR}")
+else()
+  message(WARNING "libVLC bundle not found at ${LIBVLC_BUNDLE_DIR} - VLC playback will use system libraries!")
+endif()
+
 # Fully re-copy the assets directory on each build to avoid having stale files
 # from a previous install.
 set(FLUTTER_ASSET_DIR_NAME "flutter_assets")

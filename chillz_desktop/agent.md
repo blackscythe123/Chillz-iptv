@@ -223,7 +223,7 @@ Access at: `http://127.0.0.1:9101?uri=http://127.0.0.1:[PORT]/[ID]/`
 
 ## Version History
 
-### Current Version: 0.1.0+enhancements
+### Current Version: 1.0.0+enhancements
 - Enhanced search and filtering with chip UI
 - Stream quality selection dialog
 - Comprehensive keyboard shortcuts
@@ -231,7 +231,7 @@ Access at: `http://127.0.0.1:9101?uri=http://127.0.0.1:[PORT]/[ID]/`
 - Improved audio track selection
 - Smart error handling and retry logic
 
-### Previous Version: 0.1.0+media_kit
+### Previous Version: 1.0.0+media_kit
 - Basic media_kit integration
 - Simple channel list and playback
 - Basic error handling

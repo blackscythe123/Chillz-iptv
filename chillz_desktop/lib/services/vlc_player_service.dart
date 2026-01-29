@@ -76,7 +76,17 @@ class VlcPlayerController with ChangeNotifier {
       // Default plugins path - relative to executable
       final exePath = Platform.resolvedExecutable;
       final exeDir = File(exePath).parent.path;
-      final defaultPluginsPath = '$exeDir\\plugins';
+
+      // Platform-specific plugins path
+      String defaultPluginsPath;
+      if (Platform.isWindows) {
+        defaultPluginsPath = '$exeDir\\plugins';
+      } else if (Platform.isLinux) {
+        // On Linux, plugins are in lib/vlc/plugins
+        defaultPluginsPath = '$exeDir/lib/vlc/plugins';
+      } else {
+        defaultPluginsPath = '$exeDir/plugins';
+      }
 
       final path = pluginsPath ?? defaultPluginsPath;
       debugPrint('[VLC] Initializing with plugins: $path');

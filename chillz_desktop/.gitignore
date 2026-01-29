@@ -1,46 +1,70 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
-
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# Flutter/Dart
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
+.packages
 .pub-cache/
 .pub/
-/build/
+build/
+*.iml
 
-# Symbolication related
-app.*.symbols
+# IDE
+.idea/
+*.swp
+*.swo
+.vscode/
 
-# Obfuscation related
-app.*.map.json
+# macOS
+.DS_Store
+*.dmg
 
-# Android Studio will place build artifacts here
+# Windows
+*.exe
+*.msi
+Thumbs.db
+
+# Linux build artifacts
+*.deb
+*.rpm
+*.AppImage
+*.tar.gz
+*.snap
+
+
+# Distribution output
+dist/
+
+# Build tools
+tools/
+AppDir/
+deb_package/
+rpmbuild/
+
+# VLC bundles (generated)
+
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*~
+
+# Generated files
+*.g.dart
+*.freezed.dart
+
+# Coverage
+coverage/
+
+# Android
 /android/app/debug
 /android/app/profile
 /android/app/release
-libvlc_bundle/
+*.apk
+*.aab
+
+# iOS
+/ios/Flutter/Flutter.framework
+/ios/Flutter/Flutter.podspec
+/ios/Pods/

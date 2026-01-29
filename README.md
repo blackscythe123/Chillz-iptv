@@ -10,12 +10,14 @@ It solves the common problem of unreliable free streams by using different robus
 
 This repository contains three distinct applications:
 
-### 1. [Chillz Desktop](./chillz_desktop/) (Native Windows)
+### 1. [Chillz Desktop](./chillz_desktop/) (Windows & Linux)
 -   **Technology**: Flutter + C++ (Direct libVLC Integration with VLC Command Thread).
--   **What it is**: A native Windows application that embeds the VLC media engine directly into the window with a dedicated worker thread for non-blocking playback.
+-   **Platforms**: Windows 10/11, Linux (Ubuntu/Debian/Fedora).
+-   **What it is**: A native desktop application that embeds the VLC media engine directly into the window with a dedicated worker thread for non-blocking playback.
 -   **Why use it**: Best for stability and compatibility. Typical web browsers block many IPTV streams (CORS, mixed content, codecs), but the Desktop app plays **everything** that VLC plays without UI freezing.
--   **Key Tech**: Custom C++ plugin for HWND management, VLC command thread architecture, low-level event loop bridging.
--   **Recent Improvements**: Implemented dedicated VLC command thread to eliminate UI freezes during stream switching and slow network conditions.
+-   **Key Tech**: Custom native plugins for Windows (HWND) and Linux (GTK), VLC command thread architecture, low-level event loop bridging.
+-   **Recent Improvements**: Implemented dedicated VLC command thread to eliminate UI freezes during stream switching and slow network conditions. Full Linux support added with self-contained packaging (.deb, .tar.gz, AppImage support).
+-   **Downloads**: See [releases](./chillz_desktop/README.md#-downloads) for pre-built packages.
 
 ### 2. [Chillz Browser](./chillz_browser/) (Web Client)
 -   **Technology**: React 19 + TypeScript + Vite 7.
@@ -45,9 +47,20 @@ All projects share the same design philosophy:
 
 ## 🚀 Getting Started
 
+### Quick Downloads
+
+#### Chillz Desktop v1.0.0
+| Platform | Package | Size | Installation |
+|----------|---------|------|--------------|
+| **Linux (Debian/Ubuntu)** | `.deb` | 6.7 MB | `sudo apt install ./chillz-desktop_1.0.0_amd64.deb` |
+| **Linux (Portable)** | `.tar.gz` | 18 MB | Extract and run `./run.sh` |
+| **Windows** | `.msi` | ~40 MB | Run installer |
+
+### Development Setup
+
 To run the specific applications, navigate to their respective directories and follow the README instructions therein:
 
--   **Desktop**: `cd chillz_desktop` - Full VLC integration for Windows
+-   **Desktop**: `cd chillz_desktop` - Full VLC integration for Windows & Linux
 -   **Web**: `cd chillz_browser` - Instant browser-based player
 -   **Mobile/TV**: `cd chillz_app` - Flutter mobile and TV app
 
@@ -55,11 +68,17 @@ To run the specific applications, navigate to their respective directories and f
 
 ## 🏗️ Architecture Highlights
 
-### Desktop (Windows)
+### Desktop (Windows & Linux)
 - **VLC Command Thread**: All blocking VLC operations run on a dedicated worker thread
-- **Non-blocking UI**: Platform channel calls return immediately, preventing Windows "Not Responding" state
-- **HWND Embedding**: Direct video rendering via child window handle
-- **Event-driven**: PostMessage-based event dispatch ensures thread safety
+- **Non-blocking UI**: Platform channel calls return immediately, preventing UI freezes
+- **Native Rendering**: 
+  - Windows: Direct video rendering via child HWND
+  - Linux: GTK integration with native window embedding
+- **Event-driven**: Thread-safe event dispatch (PostMessage on Windows, g_idle_add on Linux)
+- **Self-contained**: All packages include bundled VLC libraries for maximum compatibility
+- **Distribution Formats**: 
+  - Linux: .deb, .tar.gz, AppImage, .rpm
+  - Windows: MSI installer, portable ZIP
 
 ### Browser (Web)
 - **HLS.js Integration**: Polyfills native HLS support for non-Safari browsers
